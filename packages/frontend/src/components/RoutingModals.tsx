@@ -7,6 +7,8 @@ import KeyPickerModal from './KeyPickerModal.js';
 // open). Lazy-load them so the heavy model picker and the ~130 kB
 // provider-select chunk stay out of the Routing route's initial bundle.
 const ModelPickerModal = lazy(() => import('./ModelPickerModal.js'));
+import { overrideTier, setFallbacks, type ModelRoute } from '../services/api.js';
+import { toast } from '../services/toast-store.js';
 import { PROVIDERS } from '../services/providers.js';
 import type {
   TierAssignment,
@@ -147,6 +149,127 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
     setPendingOverride(null);
   };
 
+  const handleBatchSelect = async (
+    items: { modelName: string; providerId: string; authType?: AuthType }[],
+  ) => {
+    const tid = props.dropdownTier();
+    if (!tid || items.length === 0) return;
+    if (items.length === 1) {
+      handleSelect(tid, items[0].modelName, items[0].providerId, items[0].authType);
+      return;
+    }
+    props.onDropdownClose();
+    const [primary, ...fallbacks] = items;
+    try {
+      await overrideTier(
+        props.agentName(),
+        tid,
+        primary.modelName,
+        primary.providerId,
+        primary.authType,
+      );
+      const fallbackRoutes: ModelRoute[] = fallbacks.map((f) => ({
+        provider: f.providerId,
+        authType: f.authType ?? 'api_key',
+        model: f.modelName,
+      }));
+      await setFallbacks(
+        props.agentName(),
+        tid,
+        fallbackRoutes.map((r) => r.model),
+        fallbackRoutes,
+      );
+      await props.onProviderUpdate();
+      toast.success(`Configured ${tid} tier: 1 Primary + ${fallbacks.length} Fallback(s)`);
+    } catch {
+      toast.error('Failed to configure tier models');
+    }
+  };
+
+  const handleFallbackBatchSelect = async (
+    items: { modelName: string; providerId: string; authType?: AuthType }[],
+  ) => {
+    const tid = props.fallbackPickerTier();
+    if (!tid || items.length === 0) return;
+    if (items.length === 1) {
+      handleFallbackSelect(tid, items[0].modelName, items[0].providerId, items[0].authType);
+      return;
+    }
+    props.onFallbackPickerClose();
+    try {
+      const tier = props.getTier(tid);
+      const existingRoutes = tier?.fallback_routes ?? [];
+      const newRoutes: ModelRoute[] = items
+        .map((f) => ({
+          provider: f.providerId,
+          authType: f.authType ?? 'api_key',
+          model: f.modelName,
+        }))
+        .filter(
+          (nr) =>
+            !existingRoutes.some(
+              (er) =>
+                er.model === nr.model &&
+                er.provider.toLowerCase() === nr.provider.toLowerCase(),
+            ),
+        );
+      const combined = [...existingRoutes, ...newRoutes];
+      await setFallbacks(
+        props.agentName(),
+        tid,
+        combined.map((r) => r.model),
+        combined,
+      );
+      await props.onProviderUpdate();
+      toast.success(`Added ${newRoutes.length} fallback model(s) to ${tid} tier`);
+    } catch {
+      toast.error('Failed to add fallback models');
+    }
+  };
+
+  const handleSpecificityBatchSelect = async (
+    category: string,
+    items: { modelName: string; providerId: string; authType?: AuthType }[],
+  ) => {
+    if (items.length === 0) return;
+    if (items.length === 1) {
+      props.onSpecificityOverride?.(
+        category,
+        items[0].modelName,
+        items[0].providerId,
+        items[0].authType,
+      );
+      props.onSpecificityDropdownClose?.();
+      return;
+    }
+    props.onSpecificityDropdownClose?.();
+    const [primary, ...fallbacks] = items;
+    try {
+      const { setSpecificityFallbacks } = await import('../services/api.js');
+      props.onSpecificityOverride?.(
+        category,
+        primary.modelName,
+        primary.providerId,
+        primary.authType,
+      );
+      const fallbackRoutes: ModelRoute[] = fallbacks.map((f) => ({
+        provider: f.providerId,
+        authType: f.authType ?? 'api_key',
+        model: f.modelName,
+      }));
+      await setSpecificityFallbacks(
+        props.agentName(),
+        category,
+        fallbackRoutes.map((r) => r.model),
+        fallbackRoutes,
+      );
+      await props.onProviderUpdate();
+      toast.success(`Configured ${category}: 1 Primary + ${fallbacks.length} Fallback(s)`);
+    } catch {
+      toast.error('Failed to configure specificity tier');
+    }
+  };
+
   return (
     <>
       <Show when={props.dropdownTier()}>
@@ -161,6 +284,8 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               connectedProviders={props.connectedProviders()}
               requiredCapability={requiredCapabilityForTier(tierId())}
               onSelect={handleSelect}
+              onSelectBatch={handleBatchSelect}
+              isFallbackMode={false}
               onClose={props.onDropdownClose}
               onConnectProviders={() => {
                 props.onDropdownClose();
@@ -191,6 +316,10 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
                 onSelect={(_, model, provider, authType) =>
                   props.onSpecificityOverride?.(category(), model, provider, authType)
                 }
+                onSelectBatch={(items) =>
+                  handleSpecificityBatchSelect(category(), items)
+                }
+                isFallbackMode={false}
                 onClose={() => props.onSpecificityDropdownClose?.()}
                 onConnectProviders={() => {
                   props.onSpecificityDropdownClose?.();
@@ -299,6 +428,8 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
                 connectedProviders={props.connectedProviders()}
                 requiredCapability={requiredCapabilityForTier(tierId())}
                 onSelect={handleFallbackSelect}
+                onSelectBatch={handleFallbackBatchSelect}
+                isFallbackMode={true}
                 onClose={props.onFallbackPickerClose}
                 onConnectProviders={() => {
                   props.onFallbackPickerClose();

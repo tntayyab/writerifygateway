@@ -52,6 +52,16 @@ interface Props {
   customProviders?: CustomProviderData[];
   connectedProviders?: RoutingProvider[];
   onSelect: (tierId: string, modelName: string, providerId: string, authType?: AuthType) => void;
+  onSelectBatch?: (
+    items: {
+      modelName: string;
+      providerId: string;
+      providerName?: string;
+      authType?: AuthType;
+      label?: string;
+    }[],
+  ) => void | Promise<void>;
+  isFallbackMode?: boolean;
   onClose: () => void;
   onConnectProviders?: () => void;
   onProviderRefreshed?: () => void | Promise<void>;
@@ -110,6 +120,14 @@ const unavailableCapabilityLabel = (capability: ModelCapability): string => {
   return `${capability.charAt(0).toUpperCase()}${capability.slice(1)} unavailable`;
 };
 
+export interface SelectedModelItem {
+  modelName: string;
+  providerId: string;
+  providerName: string;
+  authType?: AuthType;
+  label: string;
+}
+
 const ModelPickerModal: Component<Props> = (props) => {
   const isUsable = (p: { is_active: boolean; has_api_key: boolean; cached_model_count?: number }) =>
     p.is_active && (p.has_api_key || (p.cached_model_count ?? 0) > 0);
@@ -136,6 +154,119 @@ const ModelPickerModal: Component<Props> = (props) => {
   };
   const [activeTab, setActiveTab] = createSignal<AuthType>(resolveInitialTab());
   const [search, setSearch] = createSignal('');
+  const [selectedProviderFilter, setSelectedProviderFilter] = createSignal<string | null>(null);
+  const [selectedModels, setSelectedModels] = createSignal<SelectedModelItem[]>([]);
+
+  const isModelSelected = (modelName: string, providerId: string) =>
+    selectedModels().some((m) => m.modelName === modelName && m.providerId === providerId);
+
+  const getModelSelectionIndex = (modelName: string, providerId: string) => {
+    const idx = selectedModels().findIndex(
+      (m) => m.modelName === modelName && m.providerId === providerId,
+    );
+    return idx >= 0 ? idx + 1 : null;
+  };
+
+  const toggleModelSelection = (
+    model: ModalModel,
+    providerId: string,
+    providerName: string,
+    authType?: AuthType,
+  ) => {
+    setSelectedModels((prev) => {
+      const exists = prev.some(
+        (m) => m.modelName === model.value && m.providerId === providerId,
+      );
+      if (exists) {
+        return prev.filter(
+          (m) => !(m.modelName === model.value && m.providerId === providerId),
+        );
+      }
+      return [
+        ...prev,
+        {
+          modelName: model.value,
+          providerId,
+          providerName,
+          authType,
+          label: model.label,
+        },
+      ];
+    });
+  };
+
+  const handleRowClick = (
+    model: ModalModel,
+    provId: string,
+    provName: string,
+    authType?: AuthType,
+  ) => {
+    if (selectedModels().length > 0) {
+      toggleModelSelection(model, provId, provName, authType);
+      return;
+    }
+    props.onSelect(props.tierId, model.value, provId, activeTab());
+  };
+
+  const handleBatchSubmit = () => {
+    const items = selectedModels();
+    if (items.length === 0) return;
+    if (props.onSelectBatch) {
+      void props.onSelectBatch(items);
+    } else {
+      const first = items[0];
+      props.onSelect(props.tierId, first.modelName, first.providerId, first.authType);
+    }
+  };
+
+  const renderProviderIcon = (provId: string, name: string, size = 16) => {
+    if (provId.startsWith('custom:')) {
+      const cpId = provId.slice('custom:'.length);
+      const cp = (props.customProviders ?? []).find((c) => c.id === cpId);
+      if (cp) {
+        if (cp.logo_url) {
+          return (
+            <img
+              src={cp.logo_url}
+              alt={cp.name}
+              class="custom-provider-logo"
+              width={size}
+              height={size}
+            />
+          );
+        }
+        return (
+          <span
+            class="provider-card__logo-letter"
+            style={{
+              background: customProviderColor(cp.name),
+              width: `${size}px`,
+              height: `${size}px`,
+              'font-size': `${Math.max(9, size - 5)}px`,
+              'border-radius': '4px',
+            }}
+          >
+            {cp.name.charAt(0).toUpperCase()}
+          </span>
+        );
+      }
+      return (
+        <span
+          class="provider-card__logo-letter"
+          style={{
+            background: customProviderColor(name),
+            width: `${size}px`,
+            height: `${size}px`,
+            'font-size': `${Math.max(9, size - 5)}px`,
+            'border-radius': '4px',
+          }}
+        >
+          {name.charAt(0).toUpperCase()}
+        </span>
+      );
+    }
+    return providerIcon(provId, size);
+  };
   const [showFreeOnly, setShowFreeOnly] = createSignal(false);
   /** Required capabilities: only show models that have ALL of these. */
   const [requiredCapabilities, setRequiredCapabilities] = createSignal<Set<ModelCapability>>(
@@ -247,7 +378,7 @@ const ModelPickerModal: Component<Props> = (props) => {
     return ids;
   };
 
-  const groupedModels = createMemo(() => {
+  const allGroups = createMemo(() => {
     const q = search().toLowerCase().trim();
     const labels = providerLabelMap();
     const providerIds = providerIdSet();
@@ -338,6 +469,21 @@ const ModelPickerModal: Component<Props> = (props) => {
     return groups;
   });
 
+    const availableProviders = createMemo(() => {
+    return allGroups().map((g) => ({
+      id: g.provId,
+      name: g.name,
+      count: g.models.length,
+    }));
+  });
+
+  const groupedModels = createMemo(() => {
+    const groups = allGroups();
+    const filter = selectedProviderFilter();
+    if (!filter) return groups;
+    return groups.filter((g) => g.provId.toLowerCase() === filter.toLowerCase());
+  });
+
   const pickerItems = createMemo((): PickerItem[] => {
     const items: PickerItem[] = [];
     for (const group of groupedModels()) {
@@ -366,7 +512,7 @@ const ModelPickerModal: Component<Props> = (props) => {
         : PICKER_MODEL_ROW_HEIGHT;
 
   const pickerResetKey = () =>
-    `${activeTab()}\0${search()}\0${showFreeOnly()}\0${[...requiredCapabilities()].sort().join(',')}`;
+    `${activeTab()}\0${search()}\0${showFreeOnly()}\0${selectedProviderFilter() ?? ''}\0${[...requiredCapabilities()].sort().join(',')}`;
 
   /** Returns the role of a model in the current tier: "Primary", "Fallback 1", etc. or null */
   const modelRole = (
@@ -465,9 +611,50 @@ const ModelPickerModal: Component<Props> = (props) => {
             <div class="routing-modal__title" id="model-picker-title">
               Select a model
             </div>
-            <Show when={tierLabel()}>
-              {(label) => <div class="routing-modal__subtitle">{label()} tier</div>}
-            </Show>
+            <div class="routing-modal__subtitle-row">
+              <Show when={tierLabel()}>
+                {(label) => <div class="routing-modal__subtitle">{label()} tier</div>}
+              </Show>
+              <Show when={availableProviders().length > 0}>
+                <div class="routing-modal__provider-quickbar">
+                  <button
+                    type="button"
+                    class="routing-modal__provider-quickbtn"
+                    classList={{
+                      'routing-modal__provider-quickbtn--active': selectedProviderFilter() === null,
+                    }}
+                    onClick={() => setSelectedProviderFilter(null)}
+                    title="All connected providers"
+                  >
+                    <span>All</span>
+                  </button>
+                  <For each={availableProviders()}>
+                    {(prov) => (
+                      <button
+                        type="button"
+                        class="routing-modal__provider-quickbtn"
+                        classList={{
+                          'routing-modal__provider-quickbtn--active':
+                            selectedProviderFilter() === prov.id,
+                        }}
+                        onClick={() =>
+                          setSelectedProviderFilter(
+                            selectedProviderFilter() === prov.id ? null : prov.id,
+                          )
+                        }
+                        title={`${prov.name} (${prov.count} model${prov.count === 1 ? '' : 's'})`}
+                        aria-label={`Filter by ${prov.name}`}
+                      >
+                        <span class="routing-modal__provider-quickbtn-icon">
+                          {renderProviderIcon(prov.id, prov.name, 15)}
+                        </span>
+                        <span class="routing-modal__provider-quickbtn-name">{prov.name}</span>
+                      </button>
+                    )}
+                  </For>
+                </div>
+              </Show>
+            </div>
           </div>
           <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
             <svg
@@ -638,6 +825,7 @@ const ModelPickerModal: Component<Props> = (props) => {
 
         <Show when={groupedModels().length > 0}>
           <div class="routing-modal__table-head" aria-hidden="true">
+            <span class="routing-modal__table-head-check" />
             <span>Model</span>
             <span>Server / Speed</span>
             <span>Capabilities</span>
@@ -747,13 +935,45 @@ const ModelPickerModal: Component<Props> = (props) => {
                   return (
                     <button
                       class="routing-modal__model"
-                      classList={{ 'routing-modal__model--disabled': disabled() }}
+                      classList={{
+                        'routing-modal__model--disabled': disabled(),
+                        'routing-modal__model--selected': isModelSelected(model.value, item.provId),
+                      }}
                       disabled={disabled()}
                       title={disabledReason() ?? undefined}
-                      onClick={() =>
-                        props.onSelect(props.tierId, model.value, item.provId, activeTab())
-                      }
+                      onClick={() => handleRowClick(model, item.provId, item.name, activeTab())}
                     >
+                      <span
+                        class="routing-modal__check-cell"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleModelSelection(model, item.provId, item.name, activeTab());
+                        }}
+                        title={
+                          isModelSelected(model.value, item.provId)
+                            ? `Selected #${getModelSelectionIndex(model.value, item.provId)} (Click to remove)`
+                            : 'Select model'
+                        }
+                      >
+                        <span
+                          class="routing-modal__checkbox"
+                          classList={{
+                            'routing-modal__checkbox--checked': isModelSelected(
+                              model.value,
+                              item.provId,
+                            ),
+                          }}
+                        >
+                          <Show
+                            when={isModelSelected(model.value, item.provId)}
+                            fallback={<span class="routing-modal__checkbox-empty" />}
+                          >
+                            <span class="routing-modal__checkbox-num">
+                              {getModelSelectionIndex(model.value, item.provId)}
+                            </span>
+                          </Show>
+                        </span>
+                      </span>
                       <span class="routing-modal__model-left">
                         <span class="routing-modal__model-label">
                           {model.label}
@@ -837,6 +1057,60 @@ const ModelPickerModal: Component<Props> = (props) => {
               )
             }
           </VirtualList>
+        </Show>
+
+        <Show when={selectedModels().length > 0}>
+          <div class="routing-modal__batch-bar">
+            <div class="routing-modal__batch-left">
+              <span class="routing-modal__batch-badge">{selectedModels().length}</span>
+              <div class="routing-modal__batch-text">
+                <strong>
+                  {selectedModels().length} model{selectedModels().length === 1 ? '' : 's'} selected
+                </strong>
+                <span>
+                  {props.isFallbackMode
+                    ? 'Will be added as fallback routes in this sequence'
+                    : selectedModels().length === 1
+                      ? 'Will be set as Primary model'
+                      : '#1 is Primary, remaining models become Fallbacks'}
+                </span>
+              </div>
+            </div>
+            <div class="routing-modal__batch-actions">
+              <button
+                type="button"
+                class="routing-modal__batch-btn routing-modal__batch-btn--clear"
+                onClick={() => setSelectedModels([])}
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                class="routing-modal__batch-btn routing-modal__batch-btn--apply"
+                onClick={handleBatchSubmit}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span>
+                  {props.isFallbackMode
+                    ? `Add ${selectedModels().length} Fallback${selectedModels().length === 1 ? '' : 's'}`
+                    : selectedModels().length === 1
+                      ? 'Apply Selected Model'
+                      : `Apply ${selectedModels().length} Models (1 Primary + ${selectedModels().length - 1} Fallbacks)`}
+                </span>
+              </button>
+            </div>
+          </div>
         </Show>
       </div>
     </div>

@@ -1,8 +1,8 @@
 /* ── Model picker modal ───────────────────────────── */
 .routing-modal__card {
-  --routing-modal-model-grid: minmax(0, 1fr) 92px 88px 72px 72px 164px;
+  --routing-modal-model-grid: 32px minmax(0, 1fr) 92px 88px 72px 72px 156px;
 
-  max-width: 860px;
+  max-width: 880px;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -182,7 +182,7 @@
   gap: 12px;
   flex-shrink: 0;
   margin-top: 12px;
-  padding: 8px 24px 8px 48px;
+  padding: 8px 24px 8px 20px;
   border-top: 1px solid hsl(var(--border));
   border-bottom: 1px solid hsl(var(--border));
   background: hsl(var(--card));
@@ -287,7 +287,7 @@
   box-sizing: border-box;
   width: 100%;
   height: 40px;
-  padding: 0 24px 0 48px;
+  padding: 0 24px 0 20px;
   background: none;
   border: none;
   border-top: 1px solid hsl(var(--border) / 0.5);
@@ -540,4 +540,225 @@
     white-space: normal;
     text-align: left;
   }
+}
+
+/* ── Provider Quick Filter Bar (beside subtitle) ── */
+.routing-modal__subtitle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.routing-modal__provider-quickbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-left: 4px;
+}
+
+.routing-modal__provider-quickbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 9999px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.35);
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.routing-modal__provider-quickbtn:hover {
+  background: hsl(var(--muted) / 0.7);
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border) / 0.8);
+}
+
+.routing-modal__provider-quickbtn--active {
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  border-color: hsl(var(--foreground));
+  box-shadow: 0 2px 6px hsl(var(--foreground) / 0.2);
+}
+
+.routing-modal__provider-quickbtn--active .custom-provider-logo {
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+}
+
+.routing-modal__provider-quickbtn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.routing-modal__provider-quickbtn-name {
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* ── Checkbox & Multi-Select Checklist Column ── */
+.routing-modal__table-head-check {
+  display: block;
+  width: 24px;
+}
+
+.routing-modal__check-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.routing-modal__checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid hsl(var(--border));
+  background: hsl(var(--background));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.routing-modal__checkbox:hover {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--muted) / 0.5);
+}
+
+.routing-modal__checkbox--checked {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.25);
+}
+
+.routing-modal__checkbox-num {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.routing-modal__model--selected {
+  background: hsl(var(--primary) / 0.08) !important;
+}
+
+.routing-modal__model--selected:hover {
+  background: hsl(var(--primary) / 0.12) !important;
+}
+
+/* ── Bottom Batch Action Dock ── */
+.routing-modal__batch-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: hsl(var(--card));
+  border-top: 1px solid hsl(var(--border));
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+  animation: batchSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+}
+
+@keyframes batchSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.routing-modal__batch-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.routing-modal__batch-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.routing-modal__batch-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.routing-modal__batch-text strong {
+  font-size: 12px;
+  color: hsl(var(--foreground));
+  line-height: 1.2;
+}
+
+.routing-modal__batch-text span {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.2;
+}
+
+.routing-modal__batch-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.routing-modal__batch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.routing-modal__batch-btn--clear {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.routing-modal__batch-btn--clear:hover {
+  background: hsl(var(--muted) / 0.8);
+  color: hsl(var(--foreground));
+}
+
+.routing-modal__batch-btn--apply {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 2px 8px hsl(var(--primary) / 0.3);
+}
+
+.routing-modal__batch-btn--apply:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
