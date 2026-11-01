@@ -44,7 +44,39 @@ export async function execAdminSql<T = any>(query: string): Promise<T[]> {
   return (data.rows || []) as T[];
 }
 
-export async function getAllMembers(): Promise<GatewayMember[]> {
+export type TimeRangeFilter =
+  | 'today'
+  | 'yesterday'
+  | 'this_week'
+  | 'last_week'
+  | 'this_month'
+  | 'last_month'
+  | 'lifetime';
+
+export function getTimeRangeCondition(timeRange: TimeRangeFilter = 'lifetime'): string {
+  switch (timeRange) {
+    case 'today':
+      return "WHERE timestamp >= DATE_TRUNC('day', NOW())";
+    case 'yesterday':
+      return "WHERE timestamp >= DATE_TRUNC('day', NOW() - INTERVAL '1 day') AND timestamp < DATE_TRUNC('day', NOW())";
+    case 'this_week':
+      return "WHERE timestamp >= DATE_TRUNC('week', NOW())";
+    case 'last_week':
+      return "WHERE timestamp >= DATE_TRUNC('week', NOW() - INTERVAL '1 week') AND timestamp < DATE_TRUNC('week', NOW())";
+    case 'this_month':
+      return "WHERE timestamp >= DATE_TRUNC('month', NOW())";
+    case 'last_month':
+      return "WHERE timestamp >= DATE_TRUNC('month', NOW() - INTERVAL '1 month') AND timestamp < DATE_TRUNC('month', NOW())";
+    case 'lifetime':
+    default:
+      return '';
+  }
+}
+
+export async function getAllMembers(
+  timeRange: TimeRangeFilter = 'lifetime',
+): Promise<GatewayMember[]> {
+  const dateCondition = getTimeRangeCondition(timeRange);
   const query = `
     SELECT 
       m.id, m.email, m.name, m.role, m.status, m.approved_by, m.notes,
@@ -70,6 +102,7 @@ export async function getAllMembers(): Promise<GatewayMember[]> {
         SUM(input_tokens + output_tokens) as total_tokens,
         MAX(timestamp) as last_active
       FROM public.agent_messages
+      ${dateCondition}
       GROUP BY tenant_id
     ) stats ON stats.tenant_id = t.id
     LEFT JOIN (

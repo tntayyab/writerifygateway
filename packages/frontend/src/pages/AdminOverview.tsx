@@ -3,7 +3,7 @@ import { Title } from '@solidjs/meta';
 import { A, useNavigate } from '@solidjs/router';
 import { authClient } from '../services/auth-client.js';
 import { toast } from '../services/toast-store.js';
-import { getAllMembers, type GatewayMember } from '../services/admin-neon.js';
+import { getAllMembers, type GatewayMember, type TimeRangeFilter } from '../services/admin-neon.js';
 import '../styles/admin.css';
 
 export const AdminOverview: Component = () => {
@@ -13,18 +13,16 @@ export const AdminOverview: Component = () => {
   const isBoss = () => currentUserEmail() === 'itstasdidnur@gmail.com';
 
   const [members, setMembers] = createSignal<GatewayMember[]>([]);
-  const [timeRange, setTimeRange] = createSignal<'lifetime' | '30d' | 'year' | 'last_year'>(
-    'lifetime',
-  );
+  const [timeRange, setTimeRange] = createSignal<TimeRangeFilter>('lifetime');
   const [planFilter, setPlanFilter] = createSignal<string>('all');
   const [searchQuery, setSearchQuery] = createSignal('');
   const [loading, setLoading] = createSignal(true);
   const [refreshing, setRefreshing] = createSignal(false);
 
-  async function loadData() {
+  async function loadData(range: TimeRangeFilter = timeRange()) {
     try {
       setRefreshing(true);
-      const data = await getAllMembers();
+      const data = await getAllMembers(range);
       setMembers(data);
     } catch (err) {
       console.error('Failed to load overview data:', err);
@@ -35,9 +33,14 @@ export const AdminOverview: Component = () => {
     }
   }
 
+  const handleRangeChange = (range: TimeRangeFilter) => {
+    setTimeRange(range);
+    loadData(range);
+  };
+
   onMount(() => {
-    loadData();
-    const interval = setInterval(loadData, 15000);
+    loadData(timeRange());
+    const interval = setInterval(() => loadData(timeRange()), 15000);
     onCleanup(() => clearInterval(interval));
   });
 
@@ -65,6 +68,26 @@ export const AdminOverview: Component = () => {
       return (tokens / 1_000).toFixed(0) + 'K';
     }
     return tokens.toLocaleString();
+  };
+
+  const timeRangeSubtitle = () => {
+    switch (timeRange()) {
+      case 'today':
+        return 'today across all users';
+      case 'yesterday':
+        return 'yesterday across all users';
+      case 'this_week':
+        return 'this week across all users';
+      case 'last_week':
+        return 'last week across all users';
+      case 'this_month':
+        return 'this month across all users';
+      case 'last_month':
+        return 'last month across all users';
+      case 'lifetime':
+      default:
+        return 'all users & harnesses';
+    }
   };
 
   const filteredMembers = () => {
@@ -233,37 +256,58 @@ export const AdminOverview: Component = () => {
             <div class="admin-range-group">
               <button
                 type="button"
-                onClick={() => setTimeRange('lifetime')}
+                onClick={() => handleRangeChange('today')}
+                class={`admin-range-btn ${timeRange() === 'today' ? 'active' : ''}`}
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRangeChange('yesterday')}
+                class={`admin-range-btn ${timeRange() === 'yesterday' ? 'active' : ''}`}
+              >
+                Yesterday
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRangeChange('this_week')}
+                class={`admin-range-btn ${timeRange() === 'this_week' ? 'active' : ''}`}
+              >
+                This week
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRangeChange('last_week')}
+                class={`admin-range-btn ${timeRange() === 'last_week' ? 'active' : ''}`}
+              >
+                Last week
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRangeChange('this_month')}
+                class={`admin-range-btn ${timeRange() === 'this_month' ? 'active' : ''}`}
+              >
+                This month
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRangeChange('last_month')}
+                class={`admin-range-btn ${timeRange() === 'last_month' ? 'active' : ''}`}
+              >
+                Last month
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRangeChange('lifetime')}
                 class={`admin-range-btn ${timeRange() === 'lifetime' ? 'active' : ''}`}
               >
                 Lifetime
-              </button>
-              <button
-                type="button"
-                onClick={() => setTimeRange('30d')}
-                class={`admin-range-btn ${timeRange() === '30d' ? 'active' : ''}`}
-              >
-                Last 30 days
-              </button>
-              <button
-                type="button"
-                onClick={() => setTimeRange('year')}
-                class={`admin-range-btn ${timeRange() === 'year' ? 'active' : ''}`}
-              >
-                This year
-              </button>
-              <button
-                type="button"
-                onClick={() => setTimeRange('last_year')}
-                class={`admin-range-btn ${timeRange() === 'last_year' ? 'active' : ''}`}
-              >
-                Last year
               </button>
             </div>
 
             <button
               type="button"
-              onClick={loadData}
+              onClick={() => loadData(timeRange())}
               disabled={refreshing()}
               class="admin-btn-secondary"
             >
@@ -293,7 +337,7 @@ export const AdminOverview: Component = () => {
               ACTIVE USERS
             </div>
             <div class="admin-kpi-card__value">{activeCount()}</div>
-            <div class="admin-kpi-card__sub">have usage ({totalUsers()} total accounts)</div>
+            <div class="admin-kpi-card__sub">active in period ({totalUsers()} total)</div>
           </div>
 
           {/* Total Gateway Requests */}
@@ -306,7 +350,7 @@ export const AdminOverview: Component = () => {
               TOTAL REQUESTS
             </div>
             <div class="admin-kpi-card__value">{totalRequests().toLocaleString()}</div>
-            <div class="admin-kpi-card__sub">all users & harnesses</div>
+            <div class="admin-kpi-card__sub">{timeRangeSubtitle()}</div>
           </div>
 
           {/* Total Tokens / Words */}
@@ -319,7 +363,7 @@ export const AdminOverview: Component = () => {
               TOTAL TOKENS
             </div>
             <div class="admin-kpi-card__value">{totalTokensFormatted()}</div>
-            <div class="admin-kpi-card__sub">prompt + completion tokens</div>
+            <div class="admin-kpi-card__sub">{timeRangeSubtitle()}</div>
           </div>
 
           {/* Provider Mix / Active Connections */}
