@@ -368,6 +368,7 @@
         "active"
       ],
       "files": [
+        "admin.css",
         "controls.css",
         "theme.css"
       ]
@@ -387,6 +388,166 @@
       ],
       "files": [
         "modals.css"
+      ]
+    },
+    "admin-btn-primary": {
+      "classes": [
+        "admin-btn-primary"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-btn-secondary": {
+      "classes": [
+        "admin-btn-secondary"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-container": {
+      "classes": [
+        "admin-container"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-grid-2": {
+      "classes": [
+        "admin-grid-2"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-header": {
+      "classes": [
+        "admin-header",
+        "admin-header__actions",
+        "admin-header__badge",
+        "admin-header__icon",
+        "admin-header__subtitle",
+        "admin-header__title",
+        "admin-header__title-group"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-input": {
+      "classes": [
+        "admin-input"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-kpi-card": {
+      "classes": [
+        "admin-kpi-card",
+        "admin-kpi-card__label",
+        "admin-kpi-card__sub",
+        "admin-kpi-card__top-bar",
+        "admin-kpi-card__value"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-kpi-grid": {
+      "classes": [
+        "admin-kpi-grid"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-modal": {
+      "classes": [
+        "admin-modal",
+        "admin-modal__desc",
+        "admin-modal__title"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-modal-backdrop": {
+      "classes": [
+        "admin-modal-backdrop"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-nav-tab": {
+      "classes": [
+        "admin-nav-tab",
+        "admin-nav-tab--active"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-nav-tabs": {
+      "classes": [
+        "admin-nav-tabs"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-panel": {
+      "classes": [
+        "admin-panel",
+        "admin-panel__desc",
+        "admin-panel__header",
+        "admin-panel__title"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-range-btn": {
+      "classes": [
+        "admin-range-btn"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-range-group": {
+      "classes": [
+        "admin-range-group"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-select": {
+      "classes": [
+        "admin-select"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-table": {
+      "classes": [
+        "admin-table"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "admin-table-container": {
+      "classes": [
+        "admin-table-container"
+      ],
+      "files": [
+        "admin.css"
       ]
     },
     "afx-kpi-line": {
@@ -604,12 +765,14 @@
         "auth-form__actions",
         "auth-form__error",
         "auth-form__error-link",
+        "auth-form__eye-btn",
         "auth-form__forgot",
         "auth-form__input",
         "auth-form__label",
         "auth-form__link-btn",
         "auth-form__notice",
         "auth-form__notice-link",
+        "auth-form__password-wrapper",
         "auth-form__submit",
         "auth-form__submit--secondary",
         "auth-form__success"
@@ -733,6 +896,94 @@
       ],
       "files": [
         "data.css"
+      ]
+    },
+    "badge-approved": {
+      "classes": [
+        "badge-approved"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "badge-free": {
+      "classes": [
+        "badge-free"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "badge-growth": {
+      "classes": [
+        "badge-growth"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "badge-harnesses": {
+      "classes": [
+        "badge-harnesses"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "badge-max": {
+      "classes": [
+        "badge-max"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "badge-owner": {
+      "classes": [
+        "badge-owner"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "badge-paid": {
+      "classes": [
+        "badge-paid"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "badge-pending": {
+      "classes": [
+        "badge-pending"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "badge-revoked": {
+      "classes": [
+        "badge-revoked"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "badge-starter": {
+      "classes": [
+        "badge-starter"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "badge-trial": {
+      "classes": [
+        "badge-trial"
+      ],
+      "files": [
+        "admin.css"
       ]
     },
     "billing-footer": {
@@ -1037,6 +1288,14 @@
         "routing-providers.css"
       ]
     },
+    "custom-provider-logo": {
+      "classes": [
+        "custom-provider-logo"
+      ],
+      "files": [
+        "routing-modal.css"
+      ]
+    },
     "custom-provider-model-row": {
       "classes": [
         "custom-provider-model-row",
@@ -1092,6 +1351,7 @@
         "dark"
       ],
       "files": [
+        "admin.css",
         "agent-type-select.css",
         "agents.css",
         "analytics-overview.css",
@@ -1100,10 +1360,12 @@
         "data.css",
         "modals.css",
         "model-filter.css",
+        "model-server-details.css",
         "overview.css",
         "platform-icons.css",
         "request-drawer.css",
         "routing-deprecation.css",
+        "routing-modal.css",
         "routing-providers.css",
         "routing.css",
         "syntax-highlight.css",
@@ -1321,6 +1583,22 @@
         "theme.css"
       ]
     },
+    "fallback-arrow": {
+      "classes": [
+        "fallback-arrow"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "fallback-chain": {
+      "classes": [
+        "fallback-chain"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
     "fallback-icon": {
       "classes": [
         "fallback-icon"
@@ -1353,6 +1631,14 @@
       ],
       "files": [
         "routing.css"
+      ]
+    },
+    "fallback-step-chip": {
+      "classes": [
+        "fallback-step-chip"
+      ],
+      "files": [
+        "admin.css"
       ]
     },
     "feed-item": {
@@ -2004,6 +2290,30 @@
         "theme.css"
       ]
     },
+    "modal-avatar": {
+      "classes": [
+        "modal-avatar"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "modal-avatar-status": {
+      "classes": [
+        "modal-avatar-status"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "modal-avatar-wrapper": {
+      "classes": [
+        "modal-avatar-wrapper"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
     "modal-back-btn": {
       "classes": [
         "modal-back-btn"
@@ -2019,6 +2329,22 @@
       "files": [
         "modals.css",
         "theme.css"
+      ]
+    },
+    "modal-banner": {
+      "classes": [
+        "modal-banner"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "modal-banner-gradient": {
+      "classes": [
+        "modal-banner-gradient"
+      ],
+      "files": [
+        "admin.css"
       ]
     },
     "modal-card": {
@@ -2049,6 +2375,30 @@
         "routing.css"
       ]
     },
+    "modal-close-btn": {
+      "classes": [
+        "modal-close-btn"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "modal-harness-card": {
+      "classes": [
+        "modal-harness-card"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "modal-header-body": {
+      "classes": [
+        "modal-header-body"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
     "modal-key-box": {
       "classes": [
         "modal-key-box",
@@ -2068,6 +2418,22 @@
       ],
       "files": [
         "modals.css"
+      ]
+    },
+    "modal-section": {
+      "classes": [
+        "modal-section"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "modal-section-title": {
+      "classes": [
+        "modal-section-title"
+      ],
+      "files": [
+        "admin.css"
       ]
     },
     "modal-stepper": {
@@ -2235,6 +2601,68 @@
       ],
       "files": [
         "routing.css"
+      ]
+    },
+    "model-server-card": {
+      "classes": [
+        "model-server-card",
+        "model-server-card__desc",
+        "model-server-card__est-row",
+        "model-server-card__footer",
+        "model-server-card__grid",
+        "model-server-card__header",
+        "model-server-card__model-box",
+        "model-server-card__model-id",
+        "model-server-card__model-title",
+        "model-server-card__node-info",
+        "model-server-card__provider-badge",
+        "model-server-card__reliability",
+        "model-server-card__section",
+        "model-server-card__section--highlight",
+        "model-server-card__section-title",
+        "model-server-card__stat",
+        "model-server-card__stat-label",
+        "model-server-card__stat-sub",
+        "model-server-card__stat-val",
+        "model-server-card__stat-val--speed",
+        "model-server-card__stat-val--time",
+        "model-server-card__status-line",
+        "model-server-card__status-title"
+      ],
+      "files": [
+        "model-server-details.css"
+      ]
+    },
+    "model-server-dot": {
+      "classes": [
+        "model-server-dot",
+        "model-server-dot--degraded",
+        "model-server-dot--down",
+        "model-server-dot--large",
+        "model-server-dot--online"
+      ],
+      "files": [
+        "model-server-details.css"
+      ]
+    },
+    "model-server-pill": {
+      "classes": [
+        "model-server-pill",
+        "model-server-pill--active",
+        "model-server-pill--degraded",
+        "model-server-pill--down",
+        "model-server-pill--online"
+      ],
+      "files": [
+        "model-server-details.css"
+      ]
+    },
+    "model-server-pill-wrap": {
+      "classes": [
+        "model-server-pill-wrap"
+      ],
+      "files": [
+        "model-server-details.css"
       ]
     },
     "msg-detail": {
@@ -2709,6 +3137,25 @@
         "custom-select.css"
       ]
     },
+    "profile-preset-card": {
+      "classes": [
+        "profile-preset-card",
+        "profile-preset-card--active",
+        "profile-preset-card__thumb",
+        "profile-preset-card__title"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "profile-preset-grid": {
+      "classes": [
+        "profile-preset-grid"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
     "provider-auth-badge": {
       "classes": [
         "provider-auth-badge",
@@ -2839,6 +3286,14 @@
       ],
       "files": [
         "notifications.css"
+      ]
+    },
+    "provider-pill": {
+      "classes": [
+        "provider-pill"
+      ],
+      "files": [
+        "admin.css"
       ]
     },
     "provider-setup": {
@@ -3161,9 +3616,22 @@
     },
     "routing-modal": {
       "classes": [
+        "routing-modal__batch-actions",
+        "routing-modal__batch-badge",
+        "routing-modal__batch-bar",
+        "routing-modal__batch-btn",
+        "routing-modal__batch-btn--apply",
+        "routing-modal__batch-btn--clear",
+        "routing-modal__batch-left",
+        "routing-modal__batch-text",
         "routing-modal__cap-pill",
         "routing-modal__cap-pill--active",
         "routing-modal__card",
+        "routing-modal__check-cell",
+        "routing-modal__check-cell--disabled",
+        "routing-modal__checkbox",
+        "routing-modal__checkbox--checked",
+        "routing-modal__checkbox-num",
         "routing-modal__empty",
         "routing-modal__filter-bar",
         "routing-modal__filter-check",
@@ -3180,9 +3648,11 @@
         "routing-modal__group-refresh-icon--spinning",
         "routing-modal__header",
         "routing-modal__inline-picker",
+        "routing-modal__limit-warning",
         "routing-modal__list",
         "routing-modal__model",
         "routing-modal__model--disabled",
+        "routing-modal__model--selected",
         "routing-modal__model-cell",
         "routing-modal__model-cell--price",
         "routing-modal__model-cell-label",
@@ -3193,6 +3663,11 @@
         "routing-modal__model-left",
         "routing-modal__model-meta",
         "routing-modal__model-price",
+        "routing-modal__provider-quickbar",
+        "routing-modal__provider-quickbtn",
+        "routing-modal__provider-quickbtn--active",
+        "routing-modal__provider-quickbtn-icon",
+        "routing-modal__provider-quickbtn-name",
         "routing-modal__recommended",
         "routing-modal__role-tag",
         "routing-modal__search",
@@ -3202,7 +3677,9 @@
         "routing-modal__selected-hint",
         "routing-modal__selected-label",
         "routing-modal__subtitle",
+        "routing-modal__subtitle-row",
         "routing-modal__table-head",
+        "routing-modal__table-head-check",
         "routing-modal__title"
       ],
       "files": [
@@ -4160,6 +4637,30 @@
         "modals.css"
       ]
     },
+    "user-details-modal": {
+      "classes": [
+        "user-details-modal"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "user-details-modal-overlay": {
+      "classes": [
+        "user-details-modal-overlay"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
+    "user-name-click-btn": {
+      "classes": [
+        "user-name-click-btn"
+      ],
+      "files": [
+        "admin.css"
+      ]
+    },
     "version-indicator": {
       "classes": [
         "version-indicator",
@@ -4169,6 +4670,14 @@
       ],
       "files": [
         "version-indicator.css"
+      ]
+    },
+    "view-details-pill": {
+      "classes": [
+        "view-details-pill"
+      ],
+      "files": [
+        "admin.css"
       ]
     },
     "view-more-link": {
@@ -4336,6 +4845,168 @@
       ],
       "files": [
         "agents.css"
+      ]
+    },
+    "yt-btn-customize": {
+      "classes": [
+        "yt-btn-customize"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-btn-secondary": {
+      "classes": [
+        "yt-btn-secondary"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-actions": {
+      "classes": [
+        "yt-profile-actions"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-avatar-img": {
+      "classes": [
+        "yt-profile-avatar-img"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-avatar-row": {
+      "classes": [
+        "yt-profile-avatar-row"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-avatar-wrapper": {
+      "classes": [
+        "yt-profile-avatar-wrapper"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-badge-member": {
+      "classes": [
+        "yt-profile-badge-member"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-badge-superadmin": {
+      "classes": [
+        "yt-profile-badge-superadmin"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-banner": {
+      "classes": [
+        "yt-profile-banner",
+        "yt-profile-banner__floating-badge",
+        "yt-profile-banner__overlay"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-bio": {
+      "classes": [
+        "yt-profile-bio"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-body": {
+      "classes": [
+        "yt-profile-body"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-card": {
+      "classes": [
+        "yt-profile-card"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-headline": {
+      "classes": [
+        "yt-profile-headline"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-info": {
+      "classes": [
+        "yt-profile-info"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-meta-item": {
+      "classes": [
+        "yt-profile-meta-item"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-meta-link": {
+      "classes": [
+        "yt-profile-meta-link"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-meta-row": {
+      "classes": [
+        "yt-profile-meta-row"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-name": {
+      "classes": [
+        "yt-profile-name"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-name-row": {
+      "classes": [
+        "yt-profile-name-row"
+      ],
+      "files": [
+        "profile.css"
+      ]
+    },
+    "yt-profile-online-badge": {
+      "classes": [
+        "yt-profile-online-badge"
+      ],
+      "files": [
+        "profile.css"
       ]
     }
   },
@@ -4525,6 +5196,13 @@
       "line": 588
     },
     {
+      "selector": ".select",
+      "prop": "transition",
+      "value": "border-color var(--transition-fast),\r\n    box-shadow var(--transition-fast)",
+      "file": "theme.css",
+      "line": 692
+    },
+    {
       "selector": ".sidebar",
       "prop": "padding",
       "value": "var(--gap-lg) 0 0 0",
@@ -4576,7 +5254,7 @@
     {
       "selector": ".modal",
       "prop": "box-shadow",
-      "value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,\n    0 25px 50px -12px rgb(0 0 0 / 0.25)",
+      "value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,\r\n    0 25px 50px -12px rgb(0 0 0 / 0.25)",
       "file": "theme.css",
       "line": 1116
     },
@@ -4618,7 +5296,7 @@
     {
       "selector": ".toast",
       "prop": "box-shadow",
-      "value": "0 4px 6px -1px rgb(0 0 0 / 0.1),\n    0 2px 4px -2px rgb(0 0 0 / 0.1)",
+      "value": "0 4px 6px -1px rgb(0 0 0 / 0.1),\r\n    0 2px 4px -2px rgb(0 0 0 / 0.1)",
       "file": "toast.css",
       "line": 22
     },
@@ -4779,6 +5457,14 @@
       "losesTo": "theme.css:1065"
     },
     {
+      "selector": ".select",
+      "prop": "transition",
+      "value": "border-color var(--transition-fast),\n    box-shadow var(--transition-fast)",
+      "file": "controls.css",
+      "line": 14,
+      "losesTo": "theme.css:692"
+    },
+    {
       "selector": ".toast",
       "prop": "align-items",
       "value": "center",
@@ -4901,7 +5587,7 @@
     {
       "selector": ".modal",
       "prop": "box-shadow",
-      "value": "var(--card-shadow),\n    0 25px 50px -12px rgb(0 0 0 / 0.25)",
+      "value": "var(--card-shadow),\r\n    0 25px 50px -12px rgb(0 0 0 / 0.25)",
       "file": "modals.css",
       "line": 22,
       "losesTo": "theme.css:1116"
@@ -5036,6 +5722,11 @@
     }
   ],
   "componentSheets": {
+    "admin.css": [
+      "pages/AdminAssets.tsx",
+      "pages/AdminOverview.tsx",
+      "pages/AdminUsers.tsx"
+    ],
     "agent-chart-tooltip.css": [
       "components/ChartHoverTooltip.tsx"
     ],
@@ -5058,6 +5749,9 @@
       "components/ModelPricesFilterBar.tsx",
       "pages/MessageLog.tsx"
     ],
+    "model-server-details.css": [
+      "components/ModelPickerModal.tsx"
+    ],
     "notifications-bell.css": [
       "components/NotificationBell.tsx"
     ],
@@ -5068,6 +5762,9 @@
     ],
     "playground.css": [
       "pages/Playground.tsx"
+    ],
+    "profile.css": [
+      "pages/Account.tsx"
     ],
     "reliability-card.css": [
       "components/ReliabilityChart.tsx"
@@ -5116,9 +5813,9 @@
   "stats": {
     "tokens": 79,
     "darkOverrides": 38,
-    "blocks": 317,
-    "classes": 1705,
-    "canonicalRules": 46,
-    "ghostRules": 46
+    "blocks": 391,
+    "classes": 1854,
+    "canonicalRules": 47,
+    "ghostRules": 47
   }
 }

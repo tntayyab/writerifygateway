@@ -98,7 +98,9 @@
   border: 1px solid hsl(var(--border));
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.18), 0 0 0 1px hsl(var(--border) / 0.5);
+  box-shadow:
+    0 16px 36px -4px rgba(0, 0, 0, 0.18),
+    0 0 0 1px hsl(var(--border) / 0.5);
   color: hsl(var(--foreground));
   font-family: inherit;
   font-size: 12px;
@@ -110,11 +112,9 @@
 @keyframes modelCardFadeIn {
   from {
     opacity: 0;
-    transform: translate(-50%, var(--anim-offset, -4px));
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
   }
 }
 

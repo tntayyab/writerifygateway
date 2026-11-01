@@ -209,11 +209,12 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
           (nr) =>
             !existingRoutes.some(
               (er) =>
-                er.model === nr.model &&
-                er.provider.toLowerCase() === nr.provider.toLowerCase(),
+                er.model === nr.model && er.provider.toLowerCase() === nr.provider.toLowerCase(),
             ),
         );
-      const combined = [...existingRoutes, ...newRoutes];
+      const remainingSlots = Math.max(0, 5 - existingRoutes.length);
+      const cappedNewRoutes = newRoutes.slice(0, remainingSlots);
+      const combined = [...existingRoutes, ...cappedNewRoutes].slice(0, 5);
       await setFallbacks(
         props.agentName(),
         tid,
@@ -316,9 +317,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
                 onSelect={(_, model, provider, authType) =>
                   props.onSpecificityOverride?.(category(), model, provider, authType)
                 }
-                onSelectBatch={(items) =>
-                  handleSpecificityBatchSelect(category(), items)
-                }
+                onSelectBatch={(items) => handleSpecificityBatchSelect(category(), items)}
                 isFallbackMode={false}
                 onClose={() => props.onSpecificityDropdownClose?.()}
                 onConnectProviders={() => {

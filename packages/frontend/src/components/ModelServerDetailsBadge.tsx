@@ -357,8 +357,14 @@ export function getModelTelemetry(
 
 export const ModelServerDetailsBadge: Component<ModelServerDetailsBadgeProps> = (props) => {
   const [isOpen, setIsOpen] = createSignal(false);
-  const [pos, setPos] = createSignal<{ top: number; left: number; placement: 'above' | 'below' } | null>(null);
+  const [isPinned, setIsPinned] = createSignal(false);
+  const [pos, setPos] = createSignal<{
+    top: number;
+    left: number;
+    placement: 'above' | 'below';
+  } | null>(null);
   let triggerRef: HTMLDivElement | undefined;
+  let closeTimer: ReturnType<typeof setTimeout> | undefined;
 
   const telemetry = () => getModelTelemetry(props.modelId, props.providerName, props.pricing);
 
@@ -366,40 +372,77 @@ export const ModelServerDetailsBadge: Component<ModelServerDetailsBadgeProps> = 
     if (!triggerRef) return;
     const rect = triggerRef.getBoundingClientRect();
     const placement = rect.top < 260 ? 'below' : 'above';
-    const left = Math.min(Math.max(rect.left + rect.width / 2, 180), window.innerWidth - 180);
+    const left = Math.min(Math.max(rect.left + rect.width / 2, 190), window.innerWidth - 190);
     setPos({
-      top: placement === 'above' ? rect.top - 10 : rect.bottom + 10,
+      top: placement === 'above' ? rect.top - 8 : rect.bottom + 8,
       left,
       placement,
     });
   };
 
-  const show = (e: MouseEvent) => {
+  const handleMouseEnter = (e: MouseEvent) => {
     e.stopPropagation();
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = undefined;
+    }
     updatePosition();
     setIsOpen(true);
   };
 
-  const hide = () => setIsOpen(false);
-
-  const toggle = (e: MouseEvent) => {
+  const handleMouseLeave = (e: MouseEvent) => {
     e.stopPropagation();
-    if (isOpen()) {
-      hide();
-    } else {
-      show(e);
+    if (isPinned()) return;
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => {
+      setIsOpen(false);
+    }, 220);
+  };
+
+  const handleCardMouseEnter = () => {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = undefined;
     }
   };
 
-  onCleanup(hide);
+  const handleCardMouseLeave = () => {
+    if (isPinned()) return;
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => {
+      setIsOpen(false);
+    }, 220);
+  };
+
+  const handleClick = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = undefined;
+    }
+    if (isOpen() && isPinned()) {
+      setIsPinned(false);
+      setIsOpen(false);
+    } else {
+      updatePosition();
+      setIsOpen(true);
+      setIsPinned(true);
+    }
+  };
+
+  onCleanup(() => {
+    if (closeTimer) clearTimeout(closeTimer);
+    setIsOpen(false);
+    setIsPinned(false);
+  });
 
   return (
     <div
       ref={triggerRef}
       class="model-server-pill-wrap"
-      onClick={toggle}
-      onMouseEnter={show}
-      onMouseLeave={hide}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       role="button"
       tabindex="0"
       aria-label={`Server status for ${props.modelName}`}
@@ -407,7 +450,7 @@ export const ModelServerDetailsBadge: Component<ModelServerDetailsBadgeProps> = 
       {/* Table Cell Badge Pill */}
       <span
         class={`model-server-pill model-server-pill--${telemetry().status}`}
-        classList={{ 'model-server-pill--active': isOpen() }}
+        classList={{ 'model-server-pill--active': isOpen() || isPinned() }}
       >
         <span class={`model-server-dot model-server-dot--${telemetry().status}`} />
         <span class="model-server-text">
@@ -424,15 +467,20 @@ export const ModelServerDetailsBadge: Component<ModelServerDetailsBadgeProps> = 
               position: 'fixed',
               top: `${pos()!.top}px`,
               left: `${pos()!.left}px`,
-              transform: pos()!.placement === 'above' ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
-              'z-index': 99999,
+              transform:
+                pos()!.placement === 'above' ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
+              'z-index': 999999,
             }}
+            onMouseEnter={handleCardMouseEnter}
+            onMouseLeave={handleCardMouseLeave}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div class="model-server-card__header">
               <div class="model-server-card__status-line">
-                <span class={`model-server-dot model-server-dot--large model-server-dot--${telemetry().status}`} />
+                <span
+                  class={`model-server-dot model-server-dot--large model-server-dot--${telemetry().status}`}
+                />
                 <span class="model-server-card__status-title">{telemetry().statusLabel}</span>
               </div>
               <span class="model-server-card__provider-badge">{props.providerName}</span>
@@ -459,7 +507,9 @@ export const ModelServerDetailsBadge: Component<ModelServerDetailsBadgeProps> = 
                 <span class="model-server-card__stat-val model-server-card__stat-val--time">
                   {telemetry().estTimeArticle}
                 </span>
-                <span class="model-server-card__stat-sub">~{telemetry().tokensPerSec} tok/sec output</span>
+                <span class="model-server-card__stat-sub">
+                  ~{telemetry().tokensPerSec} tok/sec output
+                </span>
               </div>
 
               <div class="model-server-card__stat">
@@ -475,7 +525,9 @@ export const ModelServerDetailsBadge: Component<ModelServerDetailsBadgeProps> = 
               <div class="model-server-card__stat">
                 <span class="model-server-card__stat-label">🔒 MAX OUTPUT / RUN</span>
                 <span class="model-server-card__stat-val">
-                  {telemetry().maxOutputTokens > 0 ? telemetry().maxOutputTokens.toLocaleString() : 'N/A'}
+                  {telemetry().maxOutputTokens > 0
+                    ? telemetry().maxOutputTokens.toLocaleString()
+                    : 'N/A'}
                 </span>
                 <span class="model-server-card__stat-sub">tokens per batch</span>
               </div>

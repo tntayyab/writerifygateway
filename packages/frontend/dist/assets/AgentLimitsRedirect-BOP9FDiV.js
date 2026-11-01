@@ -1,1 +1,0 @@
-import{aV as t}from"./index-DkXWabn0.js";import{u as e,b as r,N as s}from"./vendor-DdpLG2JE.js";import"./auth-BdVankC1.js";const i=()=>{const a=e();return r(s,{get href(){return t(a.agentName,"/guardrails")}})};export{i as default};
