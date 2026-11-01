@@ -95,7 +95,8 @@ export async function getAllMembers(
       SELECT 
         tenant_id,
         COUNT(*) as req_count,
-        COUNT(CASE WHEN status = 'success' AND (output_tokens >= 500 OR input_tokens >= 1000) THEN 1 END) as contents_count,
+        -- Calibrated to count completed full articles (each final generation produces >= 1450 output tokens; avoids overcounting ~6 outline/section sub-calls per article)
+        COUNT(CASE WHEN status = 'success' AND output_tokens >= 1450 THEN 1 END) as contents_count,
         SUM(input_tokens + output_tokens) as total_tokens,
         MAX(timestamp) as last_active
       FROM public.agent_messages

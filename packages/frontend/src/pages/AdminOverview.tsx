@@ -689,7 +689,9 @@ export const AdminOverview: Component = () => {
                   <th style={{ width: '50px' }}>#</th>
                   <th>User</th>
                   <th>Plan</th>
-                  <th>Contents</th>
+                  <th title="Completed full-length articles written (output ≥ 1,450 tokens)">
+                    Contents
+                  </th>
                   <th>Requests</th>
                   <th>Tokens</th>
                   <th>Connected Providers</th>
@@ -764,6 +766,7 @@ export const AdminOverview: Component = () => {
                           {/* Contents */}
                           <td>
                             <span
+                              title={`${(Number(m.contents_count) || 0).toLocaleString()} completed full articles`}
                               style={{
                                 display: 'inline-flex',
                                 'align-items': 'center',
