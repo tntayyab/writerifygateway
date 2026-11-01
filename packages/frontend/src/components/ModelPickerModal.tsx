@@ -30,12 +30,14 @@ import ModelCapabilityBadges, {
   ModelModalityBadges,
 } from './ModelCapabilityBadges.js';
 import VirtualList from './VirtualList.js';
+import { ModelServerDetailsBadge } from './ModelServerDetailsBadge.js';
+import '../styles/model-server-details.css';
 
 const PICKER_NARROW_QUERY = '(max-width: 640px)';
 const PICKER_GROUP_HEADER_HEIGHT = 32;
 const PICKER_MODEL_ROW_HEIGHT = 40;
 /** Stacked label + four cells + gaps + padding in the ≤640px layout. */
-const PICKER_MODEL_ROW_HEIGHT_NARROW = 160;
+const PICKER_MODEL_ROW_HEIGHT_NARROW = 192;
 
 type ModalModel = { value: string; label: string; pricing: AvailableModel };
 type PickerItem =
@@ -637,6 +639,7 @@ const ModelPickerModal: Component<Props> = (props) => {
         <Show when={groupedModels().length > 0}>
           <div class="routing-modal__table-head" aria-hidden="true">
             <span>Model</span>
+            <span>Server / Speed</span>
             <span>Capabilities</span>
             <span>Input</span>
             <span>Output</span>
@@ -758,6 +761,16 @@ const ModelPickerModal: Component<Props> = (props) => {
                             {(role) => <span class="routing-modal__role-tag">{role()}</span>}
                           </Show>
                         </span>
+                      </span>
+                      <span class="routing-modal__model-cell routing-modal__model-cell--server">
+                        <span class="routing-modal__model-cell-label">Server</span>
+                        <ModelServerDetailsBadge
+                          modelId={model.value}
+                          modelName={model.label}
+                          providerId={item.provId}
+                          providerName={item.name}
+                          pricing={model.pricing}
+                        />
                       </span>
                       <span class="routing-modal__model-cell">
                         <span class="routing-modal__model-cell-label">Capabilities</span>

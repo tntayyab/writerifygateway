@@ -1,8 +1,8 @@
 /* ── Model picker modal ───────────────────────────── */
 .routing-modal__card {
-  --routing-modal-model-grid: minmax(0, 1fr) 88px 72px 72px 172px;
+  --routing-modal-model-grid: minmax(0, 1fr) 92px 88px 72px 72px 164px;
 
-  max-width: 760px;
+  max-width: 860px;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -508,7 +508,7 @@
   }
 
   .routing-modal__card .routing-modal__model {
-    height: 160px;
+    height: 192px;
   }
 
   .routing-modal__model-cell {

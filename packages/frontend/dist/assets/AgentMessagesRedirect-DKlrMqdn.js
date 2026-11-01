@@ -1,0 +1,1 @@
+import{u as r,a as n,b as o,N as c}from"./vendor-DdpLG2JE.js";const m=()=>{const a=r(),t=n(),s=()=>{const e=new URLSearchParams(t.search);return e.set("agent",decodeURIComponent(a.agentName)),`/messages?${e.toString()}`};return o(c,{get href(){return s()}})};export{m as default};
