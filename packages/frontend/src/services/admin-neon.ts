@@ -16,6 +16,7 @@ export interface GatewayMember {
   is_email_verified?: boolean;
   created_at?: string;
   updated_at?: string;
+  contents_count?: number;
   requests_count?: number;
   tokens_count?: number | string;
   connected_providers?: string[];
@@ -45,13 +46,7 @@ export async function execAdminSql<T = any>(query: string): Promise<T[]> {
 }
 
 export type TimeRangeFilter =
-  | 'today'
-  | 'yesterday'
-  | 'this_week'
-  | 'last_week'
-  | 'this_month'
-  | 'last_month'
-  | 'lifetime';
+  'today' | 'yesterday' | 'this_week' | 'last_week' | 'this_month' | 'last_month' | 'lifetime';
 
 export function getTimeRangeCondition(timeRange: TimeRangeFilter = 'lifetime'): string {
   switch (timeRange) {
@@ -88,6 +83,7 @@ export async function getAllMembers(
       COALESCE(m.is_supported, false) as is_supported,
       COALESCE(m.is_email_verified, false) as is_email_verified,
       m.created_at, m.updated_at,
+      COALESCE(stats.contents_count, 0)::int as contents_count,
       COALESCE(stats.req_count, 0)::int as requests_count,
       COALESCE(stats.total_tokens, 0)::bigint as tokens_count,
       COALESCE(prov.providers_json, '[]'::json) as connected_providers,
@@ -99,6 +95,7 @@ export async function getAllMembers(
       SELECT 
         tenant_id,
         COUNT(*) as req_count,
+        COUNT(CASE WHEN status = 'success' AND (output_tokens >= 500 OR input_tokens >= 1000) THEN 1 END) as contents_count,
         SUM(input_tokens + output_tokens) as total_tokens,
         MAX(timestamp) as last_active
       FROM public.agent_messages
@@ -207,7 +204,9 @@ export async function blockMember(email: string, blockedBy = 'Boss TN TAYYAB') {
   const escapedEmail = email.trim().toLowerCase().replace(/'/g, "''");
   const escapedBy = blockedBy.replace(/'/g, "''");
   // Terminate any active sessions immediately
-  await execAdminSql(`DELETE FROM public.session WHERE "userId" IN (SELECT id FROM public.user WHERE LOWER(email) = LOWER('${escapedEmail}'));`);
+  await execAdminSql(
+    `DELETE FROM public.session WHERE "userId" IN (SELECT id FROM public.user WHERE LOWER(email) = LOWER('${escapedEmail}'));`,
+  );
   return execAdminSql(`
     UPDATE public.kyros_access_control
     SET status = 'rejected', approved_by = '${escapedBy}', notes = 'Blocked by Admin', updated_at = NOW()
@@ -227,13 +226,20 @@ export async function unblockMember(email: string) {
 export async function deleteMember(email: string) {
   const escapedEmail = email.trim().toLowerCase().replace(/'/g, "''");
   // Complete cascading wipe across all tables so account can be fresh tested
-  await execAdminSql(`DELETE FROM public.session WHERE "userId" IN (SELECT id FROM public.user WHERE LOWER(email) = LOWER('${escapedEmail}'));`);
-  await execAdminSql(`DELETE FROM public.account WHERE "userId" IN (SELECT id FROM public.user WHERE LOWER(email) = LOWER('${escapedEmail}'));`);
+  await execAdminSql(
+    `DELETE FROM public.session WHERE "userId" IN (SELECT id FROM public.user WHERE LOWER(email) = LOWER('${escapedEmail}'));`,
+  );
+  await execAdminSql(
+    `DELETE FROM public.account WHERE "userId" IN (SELECT id FROM public.user WHERE LOWER(email) = LOWER('${escapedEmail}'));`,
+  );
   await execAdminSql(`DELETE FROM public.user WHERE LOWER(email) = LOWER('${escapedEmail}');`);
-  await execAdminSql(`DELETE FROM public.kyros_email_verifications WHERE LOWER(email) = LOWER('${escapedEmail}');`);
-  return execAdminSql(`DELETE FROM public.kyros_access_control WHERE LOWER(email) = LOWER('${escapedEmail}');`);
+  await execAdminSql(
+    `DELETE FROM public.kyros_email_verifications WHERE LOWER(email) = LOWER('${escapedEmail}');`,
+  );
+  return execAdminSql(
+    `DELETE FROM public.kyros_access_control WHERE LOWER(email) = LOWER('${escapedEmail}');`,
+  );
 }
-
 
 // ==========================================
 // AI Assets, Models & Providers Monitoring Hub
@@ -519,11 +525,12 @@ export async function getAiAssetsMonitoringData(): Promise<{
     totalTokensAll += Number(u.total_tokens) || 0;
     totalCostAll += Number(u.total_cost) || 0;
 
-    const rawHarnesses: any[] = typeof u.harnesses === 'string' ? JSON.parse(u.harnesses) : (u.harnesses || []);
+    const rawHarnesses: any[] =
+      typeof u.harnesses === 'string' ? JSON.parse(u.harnesses) : u.harnesses || [];
     totalHarnessesCount += rawHarnesses.length;
 
     const formattedHarnesses: UserHarnessItem[] = rawHarnesses.map((h) => {
-      const rawTiers: any[] = typeof h.tiers === 'string' ? JSON.parse(h.tiers) : (h.tiers || []);
+      const rawTiers: any[] = typeof h.tiers === 'string' ? JSON.parse(h.tiers) : h.tiers || [];
       const formattedTiers: RoutingTierInfo[] = rawTiers.map((t) => {
         const pRoute = t.primary_route;
         const primaryModel = pRoute?.model || null;
@@ -553,9 +560,11 @@ export async function getAiAssetsMonitoringData(): Promise<{
         };
       });
 
-      const defaultTier = formattedTiers.find((t) => t.tier === 'default' && t.primary_model)
-        || formattedTiers.find((t) => t.primary_model)
-        || formattedTiers[0] || null;
+      const defaultTier =
+        formattedTiers.find((t) => t.tier === 'default' && t.primary_model) ||
+        formattedTiers.find((t) => t.primary_model) ||
+        formattedTiers[0] ||
+        null;
 
       const harnessItem: UserHarnessItem = {
         agent_id: h.agent_id,
@@ -600,9 +609,11 @@ export async function getAiAssetsMonitoringData(): Promise<{
     });
 
     // Primary harness is the one with the most messages or active primary model
-    const primaryHarness = formattedHarnesses.slice().sort((a, b) => b.total_messages - a.total_messages)[0]
-      || formattedHarnesses.find((h) => h.primary_tier?.primary_model)
-      || formattedHarnesses[0] || null;
+    const primaryHarness =
+      formattedHarnesses.slice().sort((a, b) => b.total_messages - a.total_messages)[0] ||
+      formattedHarnesses.find((h) => h.primary_tier?.primary_model) ||
+      formattedHarnesses[0] ||
+      null;
 
     return {
       user_id: u.user_id,

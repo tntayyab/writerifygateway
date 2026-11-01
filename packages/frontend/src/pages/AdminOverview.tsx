@@ -46,8 +46,7 @@ export const AdminOverview: Component = () => {
 
   // KPI Calculations from Live Neon DB Stats
   const approvedUsers = () => members().filter((m) => m.status === 'approved');
-  const activeCount = () =>
-    members().filter((m) => (Number(m.requests_count) || 0) > 0).length;
+  const activeCount = () => members().filter((m) => (Number(m.requests_count) || 0) > 0).length;
   const totalUsers = () => members().length;
 
   // Total live requests sum directly from agent_messages
@@ -108,9 +107,14 @@ export const AdminOverview: Component = () => {
     return list;
   };
 
-  // Sorted descending by highest requests count, then tokens count
+  // Sorted descending by highest contents count, then requests count, then tokens count
   const sortedMembers = () => {
     return [...filteredMembers()].sort((a, b) => {
+      const cntA = Number(a.contents_count) || 0;
+      const cntB = Number(b.contents_count) || 0;
+      if (cntB !== cntA) {
+        return cntB - cntA;
+      }
       const reqA = Number(a.requests_count) || 0;
       const reqB = Number(b.requests_count) || 0;
       if (reqB !== reqA) {
@@ -685,6 +689,7 @@ export const AdminOverview: Component = () => {
                   <th style={{ width: '50px' }}>#</th>
                   <th>User</th>
                   <th>Plan</th>
+                  <th>Contents</th>
                   <th>Requests</th>
                   <th>Tokens</th>
                   <th>Connected Providers</th>
@@ -698,7 +703,7 @@ export const AdminOverview: Component = () => {
                   fallback={
                     <tr>
                       <td
-                        colSpan={8}
+                        colSpan={9}
                         style={{
                           padding: '40px 18px',
                           'text-align': 'center',
@@ -754,6 +759,26 @@ export const AdminOverview: Component = () => {
                           {/* Plan */}
                           <td>
                             <span class={getPlanBadgeClass(m.plan || 'free_trial')}>{m.plan}</span>
+                          </td>
+
+                          {/* Contents */}
+                          <td>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                'align-items': 'center',
+                                gap: '4px',
+                                padding: '3px 8px',
+                                'border-radius': '6px',
+                                'font-size': '12px',
+                                'font-weight': '700',
+                                background: 'rgba(16, 185, 129, 0.12)',
+                                color: '#059669',
+                                border: '1px solid rgba(16, 185, 129, 0.28)',
+                              }}
+                            >
+                              ✍️ {(Number(m.contents_count) || 0).toLocaleString()}
+                            </span>
                           </td>
 
                           {/* Requests */}
