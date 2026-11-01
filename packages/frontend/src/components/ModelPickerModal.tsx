@@ -167,6 +167,17 @@ const ModelPickerModal: Component<Props> = (props) => {
     return idx >= 0 ? idx + 1 : null;
   };
 
+  const existingTier = () =>
+    (props.tiers ?? []).find((t) => t.id === props.tierId || t.tier === props.tierId);
+  const existingFallbacksCount = () => existingTier()?.fallback_routes?.length ?? 0;
+  const maxSelectable = () => {
+    if (props.isFallbackMode) {
+      return Math.max(0, 5 - existingFallbacksCount());
+    }
+    return 6; // 1 primary + up to 5 fallbacks
+  };
+  const isMaxReached = () => selectedModels().length >= maxSelectable();
+
   const toggleModelSelection = (
     model: ModalModel,
     providerId: string,
@@ -174,13 +185,12 @@ const ModelPickerModal: Component<Props> = (props) => {
     authType?: AuthType,
   ) => {
     setSelectedModels((prev) => {
-      const exists = prev.some(
-        (m) => m.modelName === model.value && m.providerId === providerId,
-      );
+      const exists = prev.some((m) => m.modelName === model.value && m.providerId === providerId);
       if (exists) {
-        return prev.filter(
-          (m) => !(m.modelName === model.value && m.providerId === providerId),
-        );
+        return prev.filter((m) => !(m.modelName === model.value && m.providerId === providerId));
+      }
+      if (prev.length >= maxSelectable()) {
+        return prev;
       }
       return [
         ...prev,
@@ -202,6 +212,9 @@ const ModelPickerModal: Component<Props> = (props) => {
     authType?: AuthType,
   ) => {
     if (selectedModels().length > 0) {
+      if (!isModelSelected(model.value, provId) && isMaxReached()) {
+        return;
+      }
       toggleModelSelection(model, provId, provName, authType);
       return;
     }
@@ -469,7 +482,7 @@ const ModelPickerModal: Component<Props> = (props) => {
     return groups;
   });
 
-    const availableProviders = createMemo(() => {
+  const availableProviders = createMemo(() => {
     return allGroups().map((g) => ({
       id: g.provId,
       name: g.name,
@@ -945,14 +958,34 @@ const ModelPickerModal: Component<Props> = (props) => {
                     >
                       <span
                         class="routing-modal__check-cell"
+                        classList={{
+                          'routing-modal__check-cell--disabled':
+                            (!isModelSelected(model.value, item.provId) && isMaxReached()) ||
+                            (props.isFallbackMode &&
+                              Boolean(modelRole(model.value, item.provId, activeTab()))),
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (
+                            props.isFallbackMode &&
+                            Boolean(modelRole(model.value, item.provId, activeTab()))
+                          ) {
+                            return;
+                          }
+                          if (!isModelSelected(model.value, item.provId) && isMaxReached()) {
+                            return;
+                          }
                           toggleModelSelection(model, item.provId, item.name, activeTab());
                         }}
                         title={
                           isModelSelected(model.value, item.provId)
                             ? `Selected #${getModelSelectionIndex(model.value, item.provId)} (Click to remove)`
-                            : 'Select model'
+                            : props.isFallbackMode &&
+                                Boolean(modelRole(model.value, item.provId, activeTab()))
+                              ? `Already configured as ${modelRole(model.value, item.provId, activeTab())}`
+                              : isMaxReached()
+                                ? `Maximum limit reached (${props.isFallbackMode ? `5 fallbacks max (${existingFallbacksCount()} already set)` : '6 models max'})`
+                                : 'Select model'
                         }
                       >
                         <span
@@ -1069,10 +1102,10 @@ const ModelPickerModal: Component<Props> = (props) => {
                 </strong>
                 <span>
                   {props.isFallbackMode
-                    ? 'Will be added as fallback routes in this sequence'
+                    ? `Adding ${selectedModels().length} fallback(s) (Maximum ${maxSelectable()} allowed)`
                     : selectedModels().length === 1
                       ? 'Will be set as Primary model'
-                      : '#1 is Primary, remaining models become Fallbacks'}
+                      : `#1 is Primary, remaining ${selectedModels().length - 1} models become Fallbacks (Max 5)`}
                 </span>
               </div>
             </div>

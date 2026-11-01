@@ -334,44 +334,8 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
       <Show when={props.fallbackPickerTier()}>
         {(tierId) => {
           const filteredModels = () => {
-            return props.models().filter((m) => {
-              // Find how many keys exist for this model's provider
-              const providerId = m.provider;
-              const authType = m.auth_type ?? 'api_key';
-              const keys = activeRouteKeys(props.connectedProviders(), providerId, authType);
-              if (keys.length <= 1) {
-                // Single-key model: hide if already used as primary or fallback
-                // (matched on the full route tuple — same model on a different
-                // (provider, auth) is intentionally NOT filtered).
-                const tier = props.getTier(tierId());
-                const primaryRoute = tier?.override_route ?? null;
-                if (
-                  primaryRoute &&
-                  primaryRoute.model === m.model_name &&
-                  primaryRoute.provider.toLowerCase() === providerId.toLowerCase() &&
-                  primaryRoute.authType === authType
-                ) {
-                  return false;
-                }
-                const routes = tier?.fallback_routes ?? [];
-                return !routes.some(
-                  (r) =>
-                    r.model === m.model_name &&
-                    r.provider.toLowerCase() === providerId.toLowerCase() &&
-                    r.authType === authType,
-                );
-              }
-              // Multi-key model: hide only if ALL keys are already used
-              return (
-                availableRouteKeysForModel(
-                  props.connectedProviders(),
-                  props.getTier(tierId()),
-                  m.model_name,
-                  providerId,
-                  authType,
-                ).length > 0
-              );
-            });
+            // Return all models so user can see every available model and its active role tag!
+            return props.models();
           };
 
           const handleFallbackSelect = (

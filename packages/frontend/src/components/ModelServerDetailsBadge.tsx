@@ -371,10 +371,29 @@ export const ModelServerDetailsBadge: Component<ModelServerDetailsBadgeProps> = 
   const updatePosition = () => {
     if (!triggerRef) return;
     const rect = triggerRef.getBoundingClientRect();
-    const placement = rect.top < 260 ? 'below' : 'above';
-    const left = Math.min(Math.max(rect.left + rect.width / 2, 190), window.innerWidth - 190);
+    const cardHeight = 440;
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+
+    // Only place above if there is ample room (>= 470px), otherwise always place below!
+    const placement =
+      spaceAbove >= 470 || (spaceAbove >= 380 && spaceAbove > spaceBelow) ? 'above' : 'below';
+    const left = Math.min(Math.max(rect.left + rect.width / 2, 200), window.innerWidth - 200);
+
+    let top = placement === 'above' ? rect.top - 8 : rect.bottom + 8;
+    // Safe viewport clamping
+    if (placement === 'below') {
+      if (top + cardHeight > window.innerHeight - 12) {
+        top = Math.max(12, window.innerHeight - cardHeight - 12);
+      }
+    } else {
+      if (top - cardHeight < 12) {
+        top = cardHeight + 12;
+      }
+    }
+
     setPos({
-      top: placement === 'above' ? rect.top - 8 : rect.bottom + 8,
+      top,
       left,
       placement,
     });
