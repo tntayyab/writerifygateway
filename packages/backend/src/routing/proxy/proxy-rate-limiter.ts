@@ -3,10 +3,10 @@ import { ManifestError } from '../../common/errors/manifest-error';
 import { optionalPositiveInteger } from '../../config/env.util';
 
 const RATE_WINDOW_MS = 60_000;
-const DEFAULT_RATE_MAX_REQUESTS = 200;
-const DEFAULT_IP_RATE_MAX_REQUESTS = 500;
+const DEFAULT_RATE_MAX_REQUESTS = 1000;
+const DEFAULT_IP_RATE_MAX_REQUESTS = 2000;
 const MAX_RATE_ENTRIES = 50_000;
-const DEFAULT_CONCURRENCY_MAX = 10;
+const DEFAULT_CONCURRENCY_MAX = 100;
 const CLEANUP_INTERVAL_MS = 60_000;
 
 interface RateEntry {
