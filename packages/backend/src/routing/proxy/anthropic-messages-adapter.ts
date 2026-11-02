@@ -392,7 +392,7 @@ export function chatCompletionsResponseToMessages(body: JsonRecord, model: strin
     content.push({ type: 'thinking', thinking: message.reasoning_content });
   }
 
-  const text =
+  let text =
     typeof message.content === 'string'
       ? message.content
       : Array.isArray(message.content)
@@ -401,6 +401,9 @@ export function chatCompletionsResponseToMessages(body: JsonRecord, model: strin
             .map((p) => (typeof p.text === 'string' ? p.text : ''))
             .join('')
         : '';
+  if (!text && typeof message.reasoning_content === 'string' && message.reasoning_content) {
+    text = message.reasoning_content;
+  }
   if (text) content.push({ type: 'text', text });
 
   if (Array.isArray(message.tool_calls)) {
