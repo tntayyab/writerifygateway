@@ -262,6 +262,50 @@ export async function deleteMember(email: string) {
   );
 }
 
+export async function getGatewayAccessMode(): Promise<'boss_only' | 'team_mode'> {
+  try {
+    const rows = await execAdminSql<{ value: string }>(`
+      SELECT value FROM public.kyros_gateway_settings WHERE key = 'gateway_access_mode' LIMIT 1;
+    `);
+    return rows[0]?.value === 'boss_only' ? 'boss_only' : 'team_mode';
+  } catch {
+    return 'team_mode';
+  }
+}
+
+export async function setGatewayAccessMode(mode: 'boss_only' | 'team_mode'): Promise<void> {
+  await execAdminSql(`
+    INSERT INTO public.kyros_gateway_settings (key, value, description, updated_at)
+    VALUES ('gateway_access_mode', '${mode}', 'Controls whether only Boss or all approved team members can use Gateway', NOW())
+    ON CONFLICT (key) DO UPDATE SET value = '${mode}', updated_at = NOW();
+  `);
+
+  if (mode === 'boss_only') {
+    // Deactivate everyone's agent API keys EXCEPT Boss
+    await execAdminSql(`
+      UPDATE public.agent_api_keys
+      SET is_active = false
+      WHERE tenant_id NOT IN (
+        SELECT t.id FROM public.tenants t 
+        JOIN public.user u ON t.owner_user_id = u.id 
+        WHERE LOWER(u.email) = 'itstasdidnur@gmail.com'
+      );
+    `);
+  } else {
+    // Restore agent API keys for all approved members
+    await execAdminSql(`
+      UPDATE public.agent_api_keys
+      SET is_active = true
+      WHERE tenant_id IN (
+        SELECT t.id FROM public.tenants t 
+        JOIN public.user u ON t.owner_user_id = u.id 
+        JOIN public.kyros_access_control k ON LOWER(k.email) = LOWER(u.email)
+        WHERE k.status = 'approved'
+      );
+    `);
+  }
+}
+
 // ==========================================
 // AI Assets, Models & Providers Monitoring Hub
 // ==========================================

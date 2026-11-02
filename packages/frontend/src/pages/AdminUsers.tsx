@@ -13,6 +13,8 @@ import {
   deleteMember,
   blockMember,
   unblockMember,
+  getGatewayAccessMode,
+  setGatewayAccessMode,
   type GatewayMember,
 } from '../services/admin-neon.js';
 import {
@@ -35,6 +37,7 @@ export const AdminUsers: Component = () => {
   const [loading, setLoading] = createSignal(true);
   const [refreshing, setRefreshing] = createSignal(false);
   const [actionBusy, setActionBusy] = createSignal(false);
+  const [gatewayMode, setGatewayMode] = createSignal<'boss_only' | 'team_mode'>('team_mode');
 
   // Filters matching Writerify
   const [searchQuery, setSearchQuery] = createSignal('');
@@ -124,14 +127,41 @@ export const AdminUsers: Component = () => {
   async function loadMembers() {
     try {
       setRefreshing(true);
-      const data = await getAllMembers();
+      const [data, mode] = await Promise.all([getAllMembers(), getGatewayAccessMode()]);
       setMembers(data);
+      setGatewayMode(mode);
     } catch (err: any) {
       console.error('Failed to load members:', err);
       toast.error('Failed to connect to Neon PostgreSQL');
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  }
+
+  async function handleToggleGatewayLock() {
+    const currentMode = gatewayMode();
+    const willLock = currentMode === 'team_mode';
+    const confirmMsg = willLock
+      ? '🔒 Lock Gateway to BOSS ONLY? This will immediately pause all other users (Said, etc.) from making Writerify requests.'
+      : '🟢 Restore Team Access? This will allow approved team members to resume making Writerify requests.';
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      setActionBusy(true);
+      const newMode = willLock ? 'boss_only' : 'team_mode';
+      await setGatewayAccessMode(newMode);
+      setGatewayMode(newMode);
+      if (willLock) {
+        toast.success('🔒 Gateway Locked! Only Boss TN TAYYAB can make requests.');
+      } else {
+        toast.success('🟢 Team Access Restored! Approved members can make requests.');
+      }
+      await loadMembers();
+    } catch (err: any) {
+      toast.error('Failed to change gateway mode: ' + (err.message || 'Unknown error'));
+    } finally {
+      setActionBusy(false);
     }
   }
 
@@ -387,6 +417,29 @@ export const AdminUsers: Component = () => {
               }}
             >
               ✉️ Email & Resend Setup
+            </button>
+
+            <button
+              type="button"
+              onClick={handleToggleGatewayLock}
+              disabled={actionBusy()}
+              class="admin-btn-secondary"
+              style={{
+                display: 'inline-flex',
+                'align-items': 'center',
+                gap: '6px',
+                'font-weight': '700',
+                background:
+                  gatewayMode() === 'boss_only'
+                    ? 'rgba(239, 68, 68, 0.15)'
+                    : 'rgba(16, 185, 129, 0.12)',
+                'border-color': gatewayMode() === 'boss_only' ? '#ef4444' : '#10b981',
+                color: gatewayMode() === 'boss_only' ? '#dc2626' : '#059669',
+                cursor: 'pointer',
+              }}
+              title="Click to toggle between Boss-Only private mode and Team mode"
+            >
+              {gatewayMode() === 'boss_only' ? '🔒 Gateway: BOSS ONLY' : '🟢 Gateway: TEAM ACTIVE'}
             </button>
 
             <button type="button" onClick={() => setModalOpen(true)} class="admin-btn-primary">
