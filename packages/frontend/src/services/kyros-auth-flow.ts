@@ -63,7 +63,7 @@ export function generateRandomId(length = 32): string {
 export async function getGatewaySettings(): Promise<Record<string, string>> {
   try {
     const rows = await execAdminSql<GatewaySetting>(
-      'SELECT id, key, COALESCE(value, \'\') as value FROM public.kyros_gateway_settings;'
+      "SELECT id, key, COALESCE(value, '') as value FROM public.kyros_gateway_settings;",
     );
     const map: Record<string, string> = {};
     for (const row of rows) {
@@ -100,7 +100,8 @@ export async function sendEmailViaResend(options: {
   try {
     const settings = await getGatewaySettings();
     const apiKey = settings['resend_api_key']?.trim();
-    const fromSender = settings['email_from']?.trim() || 'Writerify Gateway <onboarding@resend.dev>';
+    const fromSender =
+      settings['email_from']?.trim() || 'Writerify Gateway <onboarding@resend.dev>';
 
     if (!apiKey) {
       console.warn('[Resend] No RESEND_API_KEY set in kyros_gateway_settings.');
@@ -121,7 +122,7 @@ export async function sendEmailViaResend(options: {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
@@ -290,7 +291,7 @@ export function buildApprovalEmailHtml(name: string, email: string): string {
 export async function submitDirectRegistration(
   name: string,
   email: string,
-  password: string
+  password: string,
 ): Promise<{ success: boolean; error?: string }> {
   const cleanEmail = email.trim().toLowerCase();
   const cleanName = name.trim();
@@ -304,9 +305,12 @@ export async function submitDirectRegistration(
 
   // 1. Check if email has been blocked/rejected by Admin
   const accessRows = await execAdminSql<{ status: string }>(
-    `SELECT status FROM public.kyros_access_control WHERE LOWER(email) = LOWER('${cleanEmail.replace(/'/g, "''")}');`
+    `SELECT status FROM public.kyros_access_control WHERE LOWER(email) = LOWER('${cleanEmail.replace(/'/g, "''")}');`,
   );
-  if (accessRows.length > 0 && (accessRows[0].status === 'rejected' || accessRows[0].status === 'revoked')) {
+  if (
+    accessRows.length > 0 &&
+    (accessRows[0].status === 'rejected' || accessRows[0].status === 'revoked')
+  ) {
     return {
       success: false,
       error: 'Access Denied: This account has been blocked by Admin (Boss TN TAYYAB).',
@@ -315,7 +319,7 @@ export async function submitDirectRegistration(
 
   // 2. Check if email already has an approved account
   const existingUsers = await execAdminSql<{ id: string; email: string }>(
-    `SELECT id, email FROM public.user WHERE LOWER(email) = LOWER('${cleanEmail.replace(/'/g, "''")}');`
+    `SELECT id, email FROM public.user WHERE LOWER(email) = LOWER('${cleanEmail.replace(/'/g, "''")}');`,
   );
   if (existingUsers.length > 0) {
     return {
@@ -352,7 +356,7 @@ export async function submitDirectRegistration(
 export async function requestRegistrationOtp(
   name: string,
   email: string,
-  password: string
+  password: string,
 ): Promise<{ success: boolean; error?: string; otpCode?: string; emailSent?: boolean }> {
   const cleanEmail = email.trim().toLowerCase();
   const cleanName = name.trim();
@@ -366,9 +370,12 @@ export async function requestRegistrationOtp(
 
   // Check if email has been blocked/rejected by Admin
   const accessRows = await execAdminSql<{ status: string }>(
-    `SELECT status FROM public.kyros_access_control WHERE LOWER(email) = LOWER('${cleanEmail.replace(/'/g, "''")}');`
+    `SELECT status FROM public.kyros_access_control WHERE LOWER(email) = LOWER('${cleanEmail.replace(/'/g, "''")}');`,
   );
-  if (accessRows.length > 0 && (accessRows[0].status === 'rejected' || accessRows[0].status === 'revoked')) {
+  if (
+    accessRows.length > 0 &&
+    (accessRows[0].status === 'rejected' || accessRows[0].status === 'revoked')
+  ) {
     return {
       success: false,
       error: 'Access Denied: This account has been blocked by Admin (Boss TN TAYYAB).',
@@ -377,7 +384,7 @@ export async function requestRegistrationOtp(
 
   // Check if email already has an approved account
   const existingUsers = await execAdminSql<{ id: string; email: string }>(
-    `SELECT id, email FROM public.user WHERE LOWER(email) = LOWER('${cleanEmail.replace(/'/g, "''")}');`
+    `SELECT id, email FROM public.user WHERE LOWER(email) = LOWER('${cleanEmail.replace(/'/g, "''")}');`,
   );
   if (existingUsers.length > 0) {
     return {
@@ -429,7 +436,7 @@ export async function requestRegistrationOtp(
 
 export async function verifyRegistrationOtp(
   email: string,
-  code: string
+  code: string,
 ): Promise<{ success: boolean; error?: string }> {
   const cleanEmail = email.trim().toLowerCase();
   const cleanCode = code.trim();
@@ -481,7 +488,7 @@ export async function verifyRegistrationOtp(
 // -------------------------------------------------------------
 export async function approveUserAccount(
   email: string,
-  approver = 'Writerify'
+  approver = 'Writerify',
 ): Promise<{ success: boolean; error?: string; emailSent?: boolean }> {
   const cleanEmail = email.trim().toLowerCase();
   const escapedEmail = cleanEmail.replace(/'/g, "''");
@@ -551,6 +558,17 @@ export async function approveUserAccount(
         notes = 'Approved by Admin (Full Access Granted)',
         updated_at = NOW()
     WHERE LOWER(email) = LOWER('${escapedEmail}');
+  `);
+
+  // Reactivate agent API keys so Writerify requests can resume if previously blocked
+  await execAdminSql(`
+    UPDATE public.agent_api_keys 
+    SET is_active = true 
+    WHERE tenant_id IN (
+      SELECT t.id FROM public.tenants t 
+      JOIN public.user u ON t.owner_user_id = u.id 
+      WHERE LOWER(u.email) = LOWER('${escapedEmail}')
+    );
   `);
 
   // Dispatch confirmation email to approved user

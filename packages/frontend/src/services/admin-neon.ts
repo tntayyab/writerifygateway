@@ -208,6 +208,16 @@ export async function blockMember(email: string, blockedBy = 'Boss TN TAYYAB') {
   await execAdminSql(
     `DELETE FROM public.session WHERE "userId" IN (SELECT id FROM public.user WHERE LOWER(email) = LOWER('${escapedEmail}'));`,
   );
+  // Deactivate all agent API keys so Writerify app / external API calls are blocked immediately
+  await execAdminSql(`
+    UPDATE public.agent_api_keys 
+    SET is_active = false 
+    WHERE tenant_id IN (
+      SELECT t.id FROM public.tenants t 
+      JOIN public.user u ON t.owner_user_id = u.id 
+      WHERE LOWER(u.email) = LOWER('${escapedEmail}')
+    );
+  `);
   return execAdminSql(`
     UPDATE public.kyros_access_control
     SET status = 'rejected', approved_by = '${escapedBy}', notes = 'Blocked by Admin', updated_at = NOW()
@@ -217,6 +227,16 @@ export async function blockMember(email: string, blockedBy = 'Boss TN TAYYAB') {
 
 export async function unblockMember(email: string) {
   const escapedEmail = email.trim().toLowerCase().replace(/'/g, "''");
+  // Reactivate agent API keys so Writerify requests can resume
+  await execAdminSql(`
+    UPDATE public.agent_api_keys 
+    SET is_active = true 
+    WHERE tenant_id IN (
+      SELECT t.id FROM public.tenants t 
+      JOIN public.user u ON t.owner_user_id = u.id 
+      WHERE LOWER(u.email) = LOWER('${escapedEmail}')
+    );
+  `);
   return execAdminSql(`
     UPDATE public.kyros_access_control
     SET status = 'pending', notes = 'Unblocked by Admin - Pending Review', updated_at = NOW()
