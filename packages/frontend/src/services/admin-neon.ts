@@ -48,6 +48,41 @@ export async function execAdminSql<T = any>(query: string): Promise<T[]> {
 export type TimeRangeFilter =
   'today' | 'yesterday' | 'this_week' | 'last_week' | 'this_month' | 'last_month' | 'lifetime';
 
+export const MASTER_ADMIN_EMAILS = ['itstasdidnur@gmail.com', 'itsinjamul@gmail.com'];
+
+export function isUserAdminOrOwner(email?: string | null): boolean {
+  if (!email) return false;
+  const clean = email.toLowerCase().trim();
+  if (MASTER_ADMIN_EMAILS.includes(clean)) return true;
+  try {
+    const cached = localStorage.getItem(`kyros_role_${clean}`);
+    if (cached === 'owner' || cached === 'superadmin' || cached === 'admin') return true;
+  } catch {}
+  return false;
+}
+
+export async function checkUserIsAdminAsync(email: string): Promise<boolean> {
+  if (!email) return false;
+  const clean = email.toLowerCase().trim();
+  if (MASTER_ADMIN_EMAILS.includes(clean)) return true;
+  try {
+    const rows = await execAdminSql<{ role: string; plan: string }>(`
+      SELECT role, plan FROM public.kyros_access_control WHERE LOWER(email) = LOWER('${clean.replace(/'/g, "''")}');
+    `);
+    if (rows.length > 0) {
+      const { role, plan } = rows[0];
+      const isPrivileged = role === 'superadmin' || role === 'admin' || plan === 'owner';
+      if (isPrivileged) {
+        try {
+          localStorage.setItem(`kyros_role_${clean}`, role || plan);
+        } catch {}
+      }
+      return isPrivileged;
+    }
+  } catch {}
+  return false;
+}
+
 export function getTimeRangeCondition(timeRange: TimeRangeFilter = 'lifetime'): string {
   switch (timeRange) {
     case 'today':
@@ -153,9 +188,10 @@ export async function updateMemberRole(email: string, role: string) {
 export async function updateMemberPlan(email: string, plan: string) {
   const escapedEmail = email.replace(/'/g, "''");
   const escapedPlan = plan.replace(/'/g, "''");
+  const roleUpdate = escapedPlan === 'owner' ? ", role = 'superadmin'" : '';
   const query = `
     UPDATE public.kyros_access_control
-    SET plan = '${escapedPlan}', updated_at = NOW()
+    SET plan = '${escapedPlan}'${roleUpdate}, updated_at = NOW()
     WHERE LOWER(email) = LOWER('${escapedEmail}');
   `;
   return execAdminSql(query);

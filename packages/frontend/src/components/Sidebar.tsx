@@ -1,11 +1,12 @@
 import { A, useLocation } from '@solidjs/router';
-import { Show, createSignal, createResource, type Component } from 'solid-js';
+import { Show, createSignal, createResource, createEffect, type Component } from 'solid-js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { FREE_REQUEST_LIMIT_LABEL } from '../services/billing-display.js';
 import { checkIsSelfHosted, checkMcpEnabled } from '../services/setup-status.js';
 import AddAgentModal from './AddAgentModal.jsx';
 import ServicesContactModal from './ServicesContactModal.jsx';
 import { authClient } from '../services/auth-client.js';
+import { isUserAdminOrOwner, checkUserIsAdminAsync } from '../services/admin-neon.js';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -30,7 +31,22 @@ const Sidebar: Component<SidebarProps> = (props) => {
   const [servicesOpen, setServicesOpen] = createSignal(false);
   const session = authClient.useSession();
   const userEmail = () => session()?.data?.user?.email?.toLowerCase();
-  const isAdmin = () => userEmail() === 'itstasdidnur@gmail.com';
+  const [adminAllowed, setAdminAllowed] = createSignal(false);
+
+  createEffect(() => {
+    const email = userEmail();
+    if (!email) {
+      setAdminAllowed(false);
+      return;
+    }
+    if (isUserAdminOrOwner(email)) {
+      setAdminAllowed(true);
+      return;
+    }
+    void checkUserIsAdminAsync(email).then((res) => setAdminAllowed(res));
+  });
+
+  const isAdmin = () => adminAllowed();
   // Local providers only exist on self-hosted installs — a cloud backend
   // can't reach the user's localhost, so the Local entry is hidden there.
   const [selfHosted] = createResource(checkIsSelfHosted);

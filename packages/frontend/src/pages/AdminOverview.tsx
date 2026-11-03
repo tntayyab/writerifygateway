@@ -1,16 +1,45 @@
-import { createSignal, onMount, onCleanup, Show, For, type Component } from 'solid-js';
+import {
+  createSignal,
+  onMount,
+  onCleanup,
+  createEffect,
+  Show,
+  For,
+  type Component,
+} from 'solid-js';
 import { Title } from '@solidjs/meta';
 import { A, useNavigate } from '@solidjs/router';
 import { authClient } from '../services/auth-client.js';
 import { toast } from '../services/toast-store.js';
-import { getAllMembers, type GatewayMember, type TimeRangeFilter } from '../services/admin-neon.js';
+import {
+  getAllMembers,
+  isUserAdminOrOwner,
+  checkUserIsAdminAsync,
+  type GatewayMember,
+  type TimeRangeFilter,
+} from '../services/admin-neon.js';
 import '../styles/admin.css';
 
 export const AdminOverview: Component = () => {
   const navigate = useNavigate();
   const session = authClient.useSession();
   const currentUserEmail = () => session()?.data?.user?.email?.toLowerCase() ?? '';
-  const isBoss = () => currentUserEmail() === 'itstasdidnur@gmail.com';
+  const [adminAllowed, setAdminAllowed] = createSignal(false);
+
+  createEffect(() => {
+    const email = currentUserEmail();
+    if (!email) {
+      setAdminAllowed(false);
+      return;
+    }
+    if (isUserAdminOrOwner(email)) {
+      setAdminAllowed(true);
+      return;
+    }
+    void checkUserIsAdminAsync(email).then((res) => setAdminAllowed(res));
+  });
+
+  const isBoss = () => adminAllowed();
 
   const [members, setMembers] = createSignal<GatewayMember[]>([]);
   const [timeRange, setTimeRange] = createSignal<TimeRangeFilter>('lifetime');
@@ -223,9 +252,7 @@ export const AdminOverview: Component = () => {
               Access Denied
             </h2>
             <p class="admin-header__subtitle" style={{ 'margin-top': '8px', 'font-size': '14px' }}>
-              Admin overview is strictly restricted to Boss TN TAYYAB (
-              <span style={{ color: '#2563eb', 'font-weight': '600' }}>itstasdidnur@gmail.com</span>
-              ).
+              Admin overview is strictly restricted to Boss TN TAYYAB and Authorized Owners.
             </p>
             <A
               href="/overview"
