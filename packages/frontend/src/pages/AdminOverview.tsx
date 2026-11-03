@@ -122,7 +122,11 @@ export const AdminOverview: Component = () => {
     let list = members();
     const plan = planFilter();
     if (plan !== 'all') {
-      list = list.filter((m) => m.plan === plan);
+      if (plan === 'owner') {
+        list = list.filter((m) => m.plan === 'owner' || m.role === 'superadmin');
+      } else {
+        list = list.filter((m) => m.plan !== 'owner' && m.role !== 'superadmin');
+      }
     }
     const q = searchQuery().toLowerCase().trim();
     if (q) {
@@ -219,14 +223,9 @@ export const AdminOverview: Component = () => {
     switch (plan) {
       case 'owner':
         return 'badge-owner';
-      case 'max':
-        return 'badge-max';
-      case 'growth':
-        return 'badge-growth';
-      case 'starter':
-        return 'badge-starter';
+      case 'user':
       default:
-        return 'badge-trial';
+        return 'badge-max';
     }
   };
 
@@ -692,18 +691,15 @@ export const AdminOverview: Component = () => {
                 style={{ width: '220px' }}
               />
 
-              {/* Plan Filter */}
+              {/* Role / Plan Filter */}
               <select
                 value={planFilter()}
                 onChange={(e) => setPlanFilter(e.currentTarget.value)}
                 class="admin-select"
               >
-                <option value="all">All plans</option>
+                <option value="all">All accounts</option>
                 <option value="owner">Owner</option>
-                <option value="max">Max</option>
-                <option value="growth">Growth</option>
-                <option value="starter">Starter</option>
-                <option value="free_trial">Free trial</option>
+                <option value="user">User</option>
               </select>
             </div>
           </div>
@@ -787,7 +783,9 @@ export const AdminOverview: Component = () => {
 
                           {/* Plan */}
                           <td>
-                            <span class={getPlanBadgeClass(m.plan || 'free_trial')}>{m.plan}</span>
+                            <span class={getPlanBadgeClass(m.plan || 'user')}>
+                              {m.plan === 'owner' ? 'owner' : 'user'}
+                            </span>
                           </td>
 
                           {/* Contents */}

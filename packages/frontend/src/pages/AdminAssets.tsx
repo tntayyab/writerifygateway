@@ -166,8 +166,7 @@ export const AdminAssets: Component = () => {
   };
 
   // Filtered Members (Tab 2)
-  const paidMembers = () =>
-    members().filter((m) => m.status === 'approved' || m.plan !== 'free_trial');
+  const paidMembers = () => members().filter((m) => m.status === 'approved');
   const filteredMembers = () => {
     let list = paidMembers().length > 0 ? paidMembers() : members();
     const q = searchQuery().toLowerCase().trim();

@@ -337,7 +337,7 @@ export async function submitDirectRegistration(
   // 4. Save directly into kyros_access_control as 'pending'
   await execAdminSql(`
     INSERT INTO public.kyros_access_control (email, name, role, status, plan, notes, password_hash, is_email_verified, created_at, updated_at)
-    VALUES ('${escapedEmail}', '${escapedName}', 'member', 'pending', 'free_trial', 'Direct Registration - Pending Admin Approval', '${escapedHash}', true, NOW(), NOW())
+    VALUES ('${escapedEmail}', '${escapedName}', 'member', 'pending', 'user', 'Direct Registration - Pending Admin Approval', '${escapedHash}', true, NOW(), NOW())
     ON CONFLICT (email) DO UPDATE 
     SET name = EXCLUDED.name, 
         password_hash = EXCLUDED.password_hash, 
@@ -412,7 +412,7 @@ export async function requestRegistrationOtp(
   // Ensure record is also queued in kyros_access_control as 'pending'
   await execAdminSql(`
     INSERT INTO public.kyros_access_control (email, name, role, status, plan, notes, password_hash, created_at, updated_at)
-    VALUES ('${escapedEmail}', '${escapedName}', 'member', 'pending', 'free_trial', 'OTP Sent - Pending Email Verification', '${escapedHash}', NOW(), NOW())
+    VALUES ('${escapedEmail}', '${escapedName}', 'member', 'pending', 'user', 'OTP Sent - Pending Email Verification', '${escapedHash}', NOW(), NOW())
     ON CONFLICT (email) DO UPDATE 
     SET name = EXCLUDED.name, password_hash = EXCLUDED.password_hash, updated_at = NOW();
   `);

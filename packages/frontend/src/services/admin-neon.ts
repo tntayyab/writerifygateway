@@ -7,7 +7,7 @@ export interface GatewayMember {
   approved_by?: string;
   notes?: string;
   mobile?: string;
-  plan: 'free_trial' | 'monthly' | 'starter' | 'growth' | 'max' | 'owner';
+  plan: 'owner' | 'user' | string;
   agreed_price: number;
   paid_amount: number;
   anydesk_id?: string;
@@ -110,7 +110,7 @@ export async function getAllMembers(
   const query = `
     SELECT 
       m.id, m.email, m.name, m.role, m.status, m.approved_by, m.notes,
-      m.mobile, COALESCE(m.plan, 'free_trial') as plan,
+      m.mobile, COALESCE(m.plan, 'user') as plan,
       COALESCE(m.agreed_price, 0) as agreed_price,
       COALESCE(m.paid_amount, 0) as paid_amount,
       m.anydesk_id,
@@ -188,7 +188,7 @@ export async function updateMemberRole(email: string, role: string) {
 export async function updateMemberPlan(email: string, plan: string) {
   const escapedEmail = email.replace(/'/g, "''");
   const escapedPlan = plan.replace(/'/g, "''");
-  const roleUpdate = escapedPlan === 'owner' ? ", role = 'superadmin'" : '';
+  const roleUpdate = escapedPlan === 'owner' ? ", role = 'superadmin'" : ", role = 'member'";
   const query = `
     UPDATE public.kyros_access_control
     SET plan = '${escapedPlan}'${roleUpdate}, updated_at = NOW()

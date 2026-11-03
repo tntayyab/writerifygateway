@@ -75,7 +75,7 @@ export const AdminUsers: Component = () => {
   const [newEmail, setNewEmail] = createSignal('');
   const [newName, setNewName] = createSignal('');
   const [newRole, setNewRole] = createSignal('member');
-  const [newPlan, setNewPlan] = createSignal('free_trial');
+  const [newPlan, setNewPlan] = createSignal('user');
 
   // Email & Resend settings state
   const [emailModalOpen, setEmailModalOpen] = createSignal(false);
@@ -198,19 +198,21 @@ export const AdminUsers: Component = () => {
 
   // KPI counts
   const totalCount = () => members().length;
-  const freeTrialCount = () => members().filter((m) => m.plan === 'free_trial' || !m.plan).length;
-  const monthlyCount = () => members().filter((m) => m.plan === 'monthly').length;
-  const starterCount = () => members().filter((m) => m.plan === 'starter').length;
-  const growthCount = () => members().filter((m) => m.plan === 'growth').length;
-  const maxCount = () => members().filter((m) => m.plan === 'max').length;
-  const ownerCount = () => members().filter((m) => m.plan === 'owner').length;
+  const ownerCount = () =>
+    members().filter((m) => m.plan === 'owner' || m.role === 'superadmin').length;
+  const userCount = () =>
+    members().filter((m) => m.plan !== 'owner' && m.role !== 'superadmin').length;
   const pendingCount = () => members().filter((m) => m.status === 'pending').length;
 
   const filteredMembers = () => {
     let list = members();
     const plan = planFilter();
     if (plan !== 'all') {
-      list = list.filter((m) => (m.plan || 'free_trial') === plan);
+      if (plan === 'owner') {
+        list = list.filter((m) => m.plan === 'owner' || m.role === 'superadmin');
+      } else {
+        list = list.filter((m) => m.plan !== 'owner' && m.role !== 'superadmin');
+      }
     }
     const status = statusFilter();
     if (status !== 'all') {
@@ -563,101 +565,27 @@ export const AdminUsers: Component = () => {
                 'border-radius': '10px',
               }}
             >
-              <div
-                style={{
-                  'font-size': '10px',
-                  color: 'hsl(var(--muted-foreground))',
-                  'font-weight': '700',
-                }}
-              >
-                FREE TRIAL
-              </div>
-              <div
-                style={{
-                  'font-size': '20px',
-                  'font-weight': '800',
-                  color: 'hsl(var(--foreground))',
-                }}
-              >
-                {freeTrialCount()}
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: 'hsl(var(--muted) / 0.5)',
-                border: '1px solid hsl(var(--border))',
-                padding: '10px 16px',
-                'border-radius': '10px',
-              }}
-            >
-              <div style={{ 'font-size': '10px', color: '#0284c7', 'font-weight': '700' }}>
-                MONTHLY
-              </div>
-              <div style={{ 'font-size': '20px', 'font-weight': '800', color: '#0284c7' }}>
-                {monthlyCount()}
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: 'hsl(var(--muted) / 0.5)',
-                border: '1px solid hsl(var(--border))',
-                padding: '10px 16px',
-                'border-radius': '10px',
-              }}
-            >
-              <div style={{ 'font-size': '10px', color: '#d97706', 'font-weight': '700' }}>
-                STARTER
-              </div>
-              <div style={{ 'font-size': '20px', 'font-weight': '800', color: '#d97706' }}>
-                {starterCount()}
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: 'hsl(var(--muted) / 0.5)',
-                border: '1px solid hsl(var(--border))',
-                padding: '10px 16px',
-                'border-radius': '10px',
-              }}
-            >
-              <div style={{ 'font-size': '10px', color: '#059669', 'font-weight': '700' }}>
-                GROWTH
-              </div>
-              <div style={{ 'font-size': '20px', 'font-weight': '800', color: '#059669' }}>
-                {growthCount()}
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: 'hsl(var(--muted) / 0.5)',
-                border: '1px solid hsl(var(--border))',
-                padding: '10px 16px',
-                'border-radius': '10px',
-              }}
-            >
-              <div style={{ 'font-size': '10px', color: '#2563eb', 'font-weight': '700' }}>MAX</div>
-              <div style={{ 'font-size': '20px', 'font-weight': '800', color: '#2563eb' }}>
-                {maxCount()}
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: 'hsl(var(--muted) / 0.5)',
-                border: '1px solid hsl(var(--border))',
-                padding: '10px 16px',
-                'border-radius': '10px',
-              }}
-            >
               <div style={{ 'font-size': '10px', color: '#7c3aed', 'font-weight': '700' }}>
                 OWNER
               </div>
               <div style={{ 'font-size': '20px', 'font-weight': '800', color: '#7c3aed' }}>
                 {ownerCount()}
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: 'hsl(var(--muted) / 0.5)',
+                border: '1px solid hsl(var(--border))',
+                padding: '10px 16px',
+                'border-radius': '10px',
+              }}
+            >
+              <div style={{ 'font-size': '10px', color: '#2563eb', 'font-weight': '700' }}>
+                USERS
+              </div>
+              <div style={{ 'font-size': '20px', 'font-weight': '800', color: '#2563eb' }}>
+                {userCount()}
               </div>
             </div>
 
@@ -708,19 +636,15 @@ export const AdminUsers: Component = () => {
                 style={{ width: '240px' }}
               />
 
-              {/* Plan filter */}
+              {/* Role / Plan filter */}
               <select
                 value={planFilter()}
                 onChange={(e) => setPlanFilter(e.currentTarget.value)}
                 class="admin-select"
               >
-                <option value="all">All plans</option>
+                <option value="all">All accounts</option>
                 <option value="owner">Owner</option>
-                <option value="max">Max</option>
-                <option value="growth">Growth</option>
-                <option value="starter">Starter</option>
-                <option value="monthly">Monthly</option>
-                <option value="free_trial">Free trial</option>
+                <option value="user">User</option>
               </select>
 
               {/* Status filter */}
@@ -824,7 +748,9 @@ export const AdminUsers: Component = () => {
                           {/* Plan selector matching Writerify */}
                           <td>
                             <select
-                              value={editedPlans()[m.email] ?? m.plan ?? 'free_trial'}
+                              value={
+                                editedPlans()[m.email] ?? (m.plan === 'owner' ? 'owner' : 'user')
+                              }
                               onChange={(e) =>
                                 setEditedPlans({
                                   ...editedPlans(),
@@ -834,11 +760,7 @@ export const AdminUsers: Component = () => {
                               class="admin-select"
                               style={{ padding: '5px 8px', 'font-size': '12px' }}
                             >
-                              <option value="free_trial">free_trial</option>
-                              <option value="monthly">monthly</option>
-                              <option value="starter">starter</option>
-                              <option value="growth">growth</option>
-                              <option value="max">max</option>
+                              <option value="user">user</option>
                               <option value="owner">owner</option>
                             </select>
                           </td>
@@ -1155,11 +1077,7 @@ export const AdminUsers: Component = () => {
                       class="admin-select"
                       style={{ width: '100%' }}
                     >
-                      <option value="free_trial">free_trial</option>
-                      <option value="monthly">monthly</option>
-                      <option value="starter">starter</option>
-                      <option value="growth">growth</option>
-                      <option value="max">max</option>
+                      <option value="user">user</option>
                       <option value="owner">owner</option>
                     </select>
                   </div>
